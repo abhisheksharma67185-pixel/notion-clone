@@ -38,7 +38,7 @@ const DocumentsPage = () => {
 
             <Button onClick={onCreate} className="hover:bg-gray-100 hover:text-black">
                 <PlusCircle className="h-4 w-4 mr-1" size={16}/>
-                Create Document
+                Create Page
             </Button>
         </div>
     );

@@ -40,7 +40,7 @@ export const Navbar = () => {
                     <>
                     <Button className="hover:bg-gray-100 hover:text-black">
                         <Link href="/documents">
-                            My Documents
+                            My Pages
                         </Link>
                     </Button>
                     <UserButton

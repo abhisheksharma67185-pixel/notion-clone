@@ -118,9 +118,9 @@ export const Navigation = () => {
     const promise = create({ title: "untitled" });
 
     toast.promise(promise, {
-      loading: "Creating a new document...",
-      success: "New document created!",
-      error: "Error creating document",
+      loading: "Creating a new page...",
+      success: "New page created!",
+      error: "Error creating page",
     });
   }
 
@@ -163,7 +163,7 @@ export const Navigation = () => {
           />
 
           <Item onClick={handleCreate}
-                label="New Document"
+                label="New Page"
                 icon={PlusCircle} 
           />
 
@@ -185,7 +185,7 @@ export const Navigation = () => {
           <Item 
             onClick={handleCreate}
             icon={Plus}
-            label="Add a Document"/>
+            label="Add a Page"/>
         </div>
 
         <div 
