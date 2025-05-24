@@ -2,7 +2,7 @@
 
 import { Doc, Id } from "@/convex/_generated/dataModel"
 import { useQuery } from "convex/react";
-import { FileIcon, LucideMoveLeft } from "lucide-react";
+import { FileIcon } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/convex/_generated/api";

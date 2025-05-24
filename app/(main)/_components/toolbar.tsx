@@ -5,7 +5,7 @@ import { IconPicker } from "@/components/ui/icon-picker";
 import { api } from "@/convex/_generated/api";
 import { Doc } from "@/convex/_generated/dataModel";
 import { useMutation } from "convex/react";
-import { ImageIcon, Smile, X } from "lucide-react";
+import { Smile, X } from "lucide-react";
 import { useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 

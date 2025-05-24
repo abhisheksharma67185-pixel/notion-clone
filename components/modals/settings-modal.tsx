@@ -6,7 +6,6 @@ import {
     DialogHeader
 } from "@/components/ui/dialog";
 import { useSettings } from "@/hooks/use-settings";
-import { Label } from "@/components/ui/label"
 
 export const SettingsModal = () => {
     const settings = useSettings();

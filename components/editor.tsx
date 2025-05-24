@@ -1,7 +1,6 @@
 "use client";
 
 import {
-    BlockNoteEditor,
     PartialBlock
 } from "@blocknote/core";
 import {

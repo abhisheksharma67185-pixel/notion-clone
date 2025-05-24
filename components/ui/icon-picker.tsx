@@ -1,7 +1,6 @@
 "use client";
 
-import EmojiPicker, { Theme } from "emoji-picker-react";
-import { useTheme } from "next-themes";
+import EmojiPicker from "emoji-picker-react";
 
 import {
     Popover,

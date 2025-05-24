@@ -5,7 +5,6 @@ import { ChevronsLeftRight } from "lucide-react";
 import { Avatar, AvatarImage } from "@radix-ui/react-avatar";
 import { DropdownMenu,
     DropdownMenuItem,
-    DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
     DropdownMenuContent } from "@/components/ui/dropdown-menu";

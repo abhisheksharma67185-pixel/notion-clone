@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect } from "react";
-import { File, ReceiptPoundSterling } from "lucide-react";
+import { File } from "lucide-react";
 import { useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/clerk-react";
