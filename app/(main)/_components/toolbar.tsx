@@ -89,7 +89,7 @@ export const Toolbar = ({ initialData, preview }: ToolbarProps) => {
         {!initialData.icon && !preview && (
           <IconPicker asChild onChange={onIconSelect}>
             <Button
-              className="text-muted-foreground text-xs"
+              className="text-muted-foreground text-xs hover:opacity-75 transition"
               variant="outline"
               size="sm"
             >
@@ -97,18 +97,6 @@ export const Toolbar = ({ initialData, preview }: ToolbarProps) => {
               Add icon
             </Button>
           </IconPicker>
-        )}
-
-        {!initialData.converImage && !preview && (
-          <Button
-            onClick={() => {}}
-            className="text-muted-foreground text-xs"
-            variant="outline"
-            size="sm"
-          >
-            <ImageIcon className="h-4 w-4 mr-2" />
-            Add cover
-          </Button>
         )}
       </div>
 
