@@ -4,13 +4,9 @@ interface Params {
   documentId: string;
 }
 
-type Props = {
-  params: Params;
-};
-
-// Mark as async to satisfy Next.js
-const Page = async ({ params }: Props) => {
-  return <ClientDocumentPage documentId={params.documentId} />;
+const Page = async ({ params }: { params: Promise<Params> }) => {
+  const resolvedParams = await params;
+  return <ClientDocumentPage documentId={resolvedParams.documentId} />;
 };
 
 export default Page;

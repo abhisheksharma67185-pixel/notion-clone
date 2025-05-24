@@ -8,20 +8,20 @@ import { useMutation, useQuery } from "convex/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 interface DocumentIdProps {
-  params: {
+  params: Promise<{
     documentId: string;
-  };
+  }>;
 }
 
-const DocumentId = ({ params }: DocumentIdProps) => {
-  const documentId = params.documentId as Id<"documents">;
+const DocumentId = async ({ params }: DocumentIdProps) => {
+  const resolvedParams = await params;
+  const documentId = resolvedParams.documentId as Id<"documents">;
   const document = useQuery(api.documents.getById, { documentId });
   const update = useMutation(api.documents.update);
 
   const [content, setContent] = useState<string | null>(null);
   const initialized = useRef(false);
 
-  // Set initial content only once when document loads
   useEffect(() => {
     if (document && !initialized.current) {
       setContent(document.content || "");
@@ -32,7 +32,6 @@ const DocumentId = ({ params }: DocumentIdProps) => {
   const onChange = useCallback((newContent: string) => {
     setContent(newContent);
 
-    // Only trigger update if document is loaded
     if (document) {
       update({
         id: documentId,
