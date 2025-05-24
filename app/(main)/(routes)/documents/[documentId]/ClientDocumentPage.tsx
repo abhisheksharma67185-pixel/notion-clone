@@ -37,8 +37,14 @@ export function ClientDocumentPage({ documentId }: ClientDocumentPageProps) {
     <div className="pb-40">
       <div className="h-[35vh]" />
       <div className="md:max-w-3xl lg:max-w-4xl mx-auto">
-        {/* toolbar and editor here */}
+        <textarea
+          className="w-full border rounded p-2"
+          value={content}
+          onChange={(e) => onChange(e.target.value)}
+          rows={10}
+        />
       </div>
     </div>
   );
+  
 }
