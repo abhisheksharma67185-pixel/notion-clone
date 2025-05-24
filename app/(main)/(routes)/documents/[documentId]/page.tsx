@@ -13,7 +13,7 @@ interface DocumentIdProps {
   };
 }
 
-const DocumentId = ({ params }: DocumentIdProps) => {
+const Page = ({ params }: DocumentIdProps) => {  // <--- changed from DocumentId to Page
   const documentId = params.documentId as Id<"documents">;
   const document = useQuery(api.documents.getById, { documentId });
   const update = useMutation(api.documents.update);
@@ -60,4 +60,4 @@ const DocumentId = ({ params }: DocumentIdProps) => {
   );
 };
 
-export default DocumentId;
+export default Page;  // <--- also export as Page
