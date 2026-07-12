@@ -135,6 +135,7 @@ export function MainPanel({ initialTab = "favorites", favorites }: { initialTab?
   const [filterPanelOpen, setFilterPanelOpen] = useState(false);
   const [filterRules, setFilterRules] = useState<FilterRule[]>([]);
   const [groupPanelOpen, setGroupPanelOpen] = useState(false);
+  const [viewSettingsOpen, setViewSettingsOpen] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<string>("none");
   const [openSortPopoverId, setOpenSortPopoverId] = useState<string | null>(null);
   const [openFilterPopoverId, setOpenFilterPopoverId] = useState<string | null>(null);
@@ -395,70 +396,9 @@ export function MainPanel({ initialTab = "favorites", favorites }: { initialTab?
               </ToolbarBtn>
             )}
 
-            <Dropdown
-              align="right"
-              width={290}
-              trigger={(open, toggle) => (
-                <ToolbarBtn active={open} onClick={toggle} label="Settings">
-                  <NotionSettingsIcon className="h-4 w-4" />
-                </ToolbarBtn>
-              )}
-            >
-              {(close) => (
-                <CollectionSettingsMenu
-                  sortLabel={(sortRules[0]?.field ?? "Page name") + ((sortRules[0]?.direction ?? "asc") === "asc" ? " ↑" : " ↓")}
-                  groupLabel={groupLabelFor(selectedGroup)}
-                  hiddenCols={hiddenCols}
-                  onToggleCol={toggleCol}
-                  onSort={() => {
-                    setSortPanelOpen(true);
-                    close();
-                  }}
-                  onGroup={() => {
-                    setGroupPanelOpen(true);
-                    close();
-                  }}
-                  onClose={close}
-                  onAddAdvancedFilter={() => {
-                    setFilterPanelOpen(true);
-                    const newRule: FilterRule = {
-                      type: "advanced",
-                      id: Date.now().toString(),
-                      conjunction: "and",
-                      rules: [
-                        {
-                          id: Date.now().toString() + "-nested",
-                          field: "title",
-                          operator: "contains",
-                          value: "",
-                        }
-                      ]
-                    };
-                    setFilterRules((prev) => [...prev, newRule]);
-                    close();
-                  }}
-                  onAddFilter={(fieldName) => {
-                    setFilterPanelOpen(true);
-                    let fieldKey: "title" | "source" | "createdBy" | "lastEdited" | "lastVisited" = "title";
-                    if (fieldName === "Page name") fieldKey = "title";
-                    else if (fieldName === "Created by" || fieldName === "Last edited by") fieldKey = "createdBy";
-                    else if (fieldName === "Source") fieldKey = "source";
-                    else if (fieldName === "Last edited time") fieldKey = "lastEdited";
-                    else if (fieldName === "Last visited time") fieldKey = "lastVisited";
-
-                    const newRule: FilterRule = {
-                      type: "simple",
-                      id: Date.now().toString(),
-                      field: fieldKey,
-                      operator: "contains",
-                      value: "",
-                    };
-                    setFilterRules((prev) => [...prev, newRule]);
-                    close();
-                  }}
-                />
-              )}
-            </Dropdown>
+            <ToolbarBtn active={viewSettingsOpen} onClick={() => setViewSettingsOpen(true)} label="Settings">
+              <NotionSettingsIcon className="h-4 w-4" />
+            </ToolbarBtn>
           </div>
         </div>
         
@@ -909,6 +849,63 @@ export function MainPanel({ initialTab = "favorites", favorites }: { initialTab?
           onHiddenGroupsChange={setHiddenGroups}
         />
       )}
+
+      {viewSettingsOpen && (
+        <CollectionSettingsMenu
+          sortLabel={(sortRules[0]?.field ?? "Page name") + ((sortRules[0]?.direction ?? "asc") === "asc" ? " ↑" : " ↓")}
+          groupLabel={groupLabelFor(selectedGroup)}
+          filterLabel={filterLabelFor(filterRules)}
+          hiddenCols={hiddenCols}
+          onToggleCol={toggleCol}
+          onSort={() => {
+            setSortPanelOpen(true);
+            setViewSettingsOpen(false);
+          }}
+          onGroup={() => {
+            setGroupPanelOpen(true);
+            setViewSettingsOpen(false);
+          }}
+          onClose={() => setViewSettingsOpen(false)}
+          onAddAdvancedFilter={() => {
+            setFilterPanelOpen(true);
+            const newRule: FilterRule = {
+              type: "advanced",
+              id: Date.now().toString(),
+              conjunction: "and",
+              rules: [
+                {
+                  id: Date.now().toString() + "-nested",
+                  field: "title",
+                  operator: "contains",
+                  value: "",
+                },
+              ],
+            };
+            setFilterRules((prev) => [...prev, newRule]);
+            setViewSettingsOpen(false);
+          }}
+          onAddFilter={(fieldName) => {
+            setFilterPanelOpen(true);
+            let fieldKey: "title" | "source" | "createdBy" | "lastEdited" | "lastVisited" = "title";
+            if (fieldName === "Page name") fieldKey = "title";
+            else if (fieldName === "Created by" || fieldName === "Last edited by") fieldKey = "createdBy";
+            else if (fieldName === "Source") fieldKey = "source";
+            else if (fieldName === "Last edited time") fieldKey = "lastEdited";
+            else if (fieldName === "Last visited time") fieldKey = "lastVisited";
+
+            const newRule: FilterRule = {
+              type: "simple",
+              id: Date.now().toString(),
+              field: fieldKey,
+              operator: "contains",
+              value: "",
+            };
+            setFilterRules((prev) => [...prev, newRule]);
+            setViewSettingsOpen(false);
+          }}
+        />
+      )}
+
       {(openSortPopoverId || openFilterPopoverId) && (
         <div 
           className="fixed inset-0 z-40" 
@@ -1337,6 +1334,14 @@ function ToolbarBtn({ children, onClick, active, label }: { children: React.Reac
 
 const OPTIONAL_COLS = ["Created by", "Source", "Last edited time", "Last visited time"];
 
+// Label for the active filter's field (empty when no filter is set).
+function filterLabelFor(rules: FilterRule[]): string {
+  const r = rules[0];
+  if (!r) return "";
+  const field = r.type === "simple" ? r.field : r.rules[0]?.field;
+  return FILTER_FIELDS.find((f) => f.value === field)?.label ?? "";
+}
+
 // Maps a group field id to its human label (empty when ungrouped).
 function groupLabelFor(groupId: string): string {
   switch (groupId) {
@@ -1354,6 +1359,7 @@ function groupLabelFor(groupId: string): string {
 function CollectionSettingsMenu({
   sortLabel,
   groupLabel,
+  filterLabel,
   hiddenCols,
   onToggleCol,
   onSort,
@@ -1364,6 +1370,7 @@ function CollectionSettingsMenu({
 }: {
   sortLabel: string;
   groupLabel: string;
+  filterLabel: string;
   hiddenCols: Set<string>;
   onToggleCol: (label: string) => void;
   onSort: () => void;
@@ -1375,104 +1382,108 @@ function CollectionSettingsMenu({
   const [view, setView] = useState<"main" | "visibility" | "filter">("main");
   const [filterQuery, setFilterQuery] = useState("");
 
+  let body: React.ReactNode;
   if (view === "visibility") {
     const shown = ["Page name", ...OPTIONAL_COLS.filter((label) => !hiddenCols.has(label))];
     const hiddenItems = OPTIONAL_COLS.filter((label) => hiddenCols.has(label));
-
-    return (
-      <div className="w-full py-1">
-        <button
-          onClick={() => setView("main")}
-          className="mb-1 flex h-8 w-full items-center gap-1.5 rounded-md px-2 text-[14px] text-[#37352F] transition-colors hover:bg-black/[0.05]"
-        >
-          <ChevronLeft className="h-4 w-4 text-[#9B9A97]" strokeWidth={2} />
-          Property visibility
-        </button>
-        <PropertySection
-          title="Shown in table"
-          action="Hide all"
-          items={shown}
-          hidden={hiddenCols}
-          onToggle={onToggleCol}
-        />
-        <PropertySection
-          title="Hidden in table"
-          action="Show all"
-          items={hiddenItems}
-          hidden={hiddenCols}
-          onToggle={onToggleCol}
-        />
-      </div>
+    body = (
+      <>
+        <SubmenuHeader title="Property visibility" onBack={() => setView("main")} onClose={onClose} />
+        <div className="flex-1 overflow-y-auto px-2 py-1.5">
+          <PropertySection title="Shown in table" action="Hide all" items={shown} hidden={hiddenCols} onToggle={onToggleCol} />
+          <PropertySection title="Hidden in table" action="Show all" items={hiddenItems} hidden={hiddenCols} onToggle={onToggleCol} />
+        </div>
+      </>
     );
-  }
-
-  if (view === "filter") {
+  } else if (view === "filter") {
     const filterOptions = ["Page name", "Created by", "Created time", "Last edited by", "Last edited time", "Last visited time"];
     const visibleOptions = filterOptions.filter((label) =>
       label.toLowerCase().includes(filterQuery.toLowerCase())
     );
-
-    return (
-      <div className="flex w-full flex-col py-0">
+    body = (
+      <>
         <SubmenuHeader title="Add filter" onBack={() => setView("main")} onClose={onClose} />
-        <div className="px-2 pb-1.5 pt-2">
-          <div className="flex h-7 items-center rounded-md bg-black/[0.035] px-2 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.10)] focus-within:bg-white focus-within:shadow-[inset_0_0_0_1px_rgba(35,131,226,0.55)]">
-            <input
-              autoFocus
-              value={filterQuery}
-              onChange={(e) => setFilterQuery(e.target.value)}
-              placeholder="Filter by..."
-              className="h-full w-full bg-transparent text-[14px] text-[#2C2C2B] outline-none placeholder:text-[#9B9A97]"
-            />
+        <div className="flex flex-1 flex-col overflow-y-auto">
+          <div className="px-2 pb-1.5 pt-2">
+            <div className="flex h-7 items-center rounded-md bg-black/[0.035] px-2 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.10)] focus-within:bg-white focus-within:shadow-[inset_0_0_0_1px_rgba(35,131,226,0.55)]">
+              <input
+                autoFocus
+                value={filterQuery}
+                onChange={(e) => setFilterQuery(e.target.value)}
+                placeholder="Filter by..."
+                className="h-full w-full bg-transparent text-[14px] text-[#2C2C2B] outline-none placeholder:text-[#9B9A97]"
+              />
+            </div>
           </div>
+          <div className="px-2 py-1">
+            {visibleOptions.map((label, index) => (
+              <PropertyOptionRow key={label} label={label} active={index === 0} onClick={() => onAddFilter(label)} />
+            ))}
+          </div>
+          <div className="px-2">
+            <MenuSeparator />
+          </div>
+          <button
+            onClick={onAddAdvancedFilter}
+            className="mx-2 flex h-9 items-center gap-2.5 rounded-md px-2 text-left text-[14px] text-[#5F5E59] transition-colors hover:bg-black/[0.05]"
+          >
+            <Plus className="h-5 w-5" strokeWidth={1.8} />
+            <span>Add advanced filter</span>
+          </button>
         </div>
-        <div className="max-h-[248px] overflow-y-auto py-1">
-          {visibleOptions.map((label, index) => (
-            <PropertyOptionRow
-              key={label}
-              label={label}
-              active={index === 0}
-              onClick={() => onAddFilter(label)}
-            />
-          ))}
+      </>
+    );
+  } else {
+    body = (
+      <>
+        <div className="flex h-[42px] items-center px-3.5 pb-1.5 pt-3.5">
+          <span className="min-w-0 flex-1 truncate text-[14px] font-medium text-[#787774]">View settings</span>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="flex h-6 w-6 items-center justify-center rounded-full bg-black/[0.04] text-[#5F5E59] transition-colors hover:bg-black/[0.08]"
+          >
+            <X className="h-4 w-4" strokeWidth={2} />
+          </button>
         </div>
-        <MenuSeparator />
-        <button
-          onClick={onAddAdvancedFilter}
-          className="flex h-9 w-full items-center gap-2.5 rounded-md px-2 text-left text-[14px] text-[#5F5E59] transition-colors hover:bg-black/[0.05]"
-        >
-          <Plus className="h-5 w-5" strokeWidth={1.8} />
-          <span>Add advanced filter</span>
-        </button>
-      </div>
+        <div className="flex-1 overflow-y-auto px-2 py-0.5">
+          <SettingsMenuRow
+            icon={<Eye className="h-5 w-5" strokeWidth={1.7} />}
+            label="Property visibility"
+            value={String(1 + OPTIONAL_COLS.filter((c) => !hiddenCols.has(c)).length)}
+            onClick={() => setView("visibility")}
+          />
+          <SettingsMenuRow
+            icon={<NotionFilterIcon className="h-5 w-5" />}
+            label="Filter"
+            value={filterLabel}
+            onClick={() => setView("filter")}
+          />
+          <SettingsMenuRow
+            icon={<ArrowUpDownIcon className="h-5 w-5" />}
+            label="Sort"
+            value={sortLabel}
+            onClick={onSort}
+          />
+          <SettingsMenuRow
+            icon={<SquareGridBelowLinesIcon className="h-5 w-5" />}
+            label="Group"
+            value={groupLabel}
+            onClick={onGroup}
+          />
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="py-0.5">
-      <SettingsMenuRow
-        icon={<Eye className="h-5 w-5" strokeWidth={1.7} />}
-        label="Property visibility"
-        value={String(1 + OPTIONAL_COLS.filter((c) => !hiddenCols.has(c)).length)}
-        onClick={() => setView("visibility")}
-      />
-      <SettingsMenuRow
-        icon={<NotionFilterIcon className="h-5 w-5" />}
-        label="Filter"
-        onClick={() => setView("filter")}
-      />
-      <SettingsMenuRow
-        icon={<ArrowUpDownIcon className="h-5 w-5" />}
-        label="Sort"
-        value={sortLabel}
-        onClick={onSort}
-      />
-      <SettingsMenuRow
-        icon={<SquareGridBelowLinesIcon className="h-5 w-5" />}
-        label="Group"
-        value={groupLabel}
-        onClick={onGroup}
-      />
+    <div className="fixed inset-0 z-50" onClick={onClose}>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="fixed bottom-0 right-0 top-0 flex w-[290px] flex-col border-l border-black/[0.08] bg-white shadow-[0_0_24px_rgba(0,0,0,0.12)] animate-in slide-in-from-right-4 duration-200"
+      >
+        {body}
+      </div>
     </div>
   );
 }
