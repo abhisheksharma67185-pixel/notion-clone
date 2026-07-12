@@ -104,7 +104,7 @@ const TAB_ROWS: Record<TabKey, PageRow[]> = {
 
 const COL = { by: "w-[200px]", src: "w-[200px]", edited: "w-[200px]", visited: "w-[200px]" };
 
-export function MainPanel({ initialTab = "favorites" }: { initialTab?: TabKey }) {
+export function MainPanel({ initialTab = "favorites", favorites }: { initialTab?: TabKey; favorites?: Set<string> }) {
   const [active, setActive] = useState<TabKey>(initialTab);
   const [layout, setLayout] = useState<LayoutKind>("table");
   const [hiddenCols, setHiddenCols] = useState<Set<string>>(new Set());
@@ -134,7 +134,11 @@ export function MainPanel({ initialTab = "favorites" }: { initialTab?: TabKey })
   const copy = EMPTY_COPY[active];
   const isNotes = active === "notes";
 
-  const allRows = TAB_ROWS[active];
+  // Favorites tab reflects the pages the user has starred (deduped by title).
+  const allRows =
+    active === "favorites"
+      ? Array.from(new Map(ROWS.filter((r) => favorites?.has(r.title)).map((r) => [r.title, r])).values())
+      : TAB_ROWS[active];
   
   // Apply search query and filter panel rules
   let filteredRows = allRows;

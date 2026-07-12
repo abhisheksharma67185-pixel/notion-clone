@@ -133,7 +133,7 @@ export default function NotionLibraryPage() {
   } else if (nav === "home") {
     main = <HomeView onOpenDoc={handleOpenDoc} />;
   } else if (nav === "library") {
-    main = <MainPanel key={libraryTab} initialTab={libraryTab} />;
+    main = <MainPanel key={libraryTab} initialTab={libraryTab} favorites={favorites} />;
   } else {
     main = (
       <main className="flex h-dvh flex-1 flex-col items-center justify-center bg-white text-[#2C2C2B]">
