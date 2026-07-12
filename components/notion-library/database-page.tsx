@@ -378,7 +378,6 @@ export function DatabasePage({ fullWidth }: { fullWidth?: boolean }) {
               </h3>
               
               <TemplateButton
-                previewKey="tasks"
                 icon={
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[#E2F5EC] text-[#0F7B48]">
                     <Check className="h-3.5 w-3.5" strokeWidth={3} />
@@ -389,7 +388,6 @@ export function DatabasePage({ fullWidth }: { fullWidth?: boolean }) {
               />
 
               <TemplateButton
-                previewKey="projects"
                 icon={
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[#E5F1FD] text-[#2383E2]">
                     <IterateIcon />
@@ -400,7 +398,6 @@ export function DatabasePage({ fullWidth }: { fullWidth?: boolean }) {
               />
 
               <TemplateButton
-                previewKey="docs"
                 icon={
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[#FCE8E6] text-[#E5484D]">
                     <FileText className="h-3.5 w-3.5" strokeWidth={2.5} />
@@ -1251,127 +1248,22 @@ function PropertyTypeMenu({
 }
 
 function TemplateButton({
-  previewKey,
   icon,
   label,
   onSelect,
 }: {
-  previewKey: TemplatePreviewKey;
   icon: React.ReactNode;
   label: string;
   onSelect: () => void;
 }) {
   return (
-    <div className="group mx-1.5">
-      <button
-        onClick={onSelect}
-        className="flex w-full items-center rounded-md p-1.5 text-left text-[14px] hover:bg-black/[0.055]"
-      >
-        {icon}
-        <span className="truncate text-[14px] leading-5 text-[#2C2C2B]">{label}</span>
-      </button>
-      <TemplatePreview previewKey={previewKey} />
-    </div>
-  );
-}
-
-function TemplatePreview({ previewKey }: { previewKey: TemplatePreviewKey }) {
-  const preview = TEMPLATE_PREVIEWS[previewKey];
-  const topClass = previewKey === "tasks" ? "top-[286px]" : previewKey === "projects" ? "top-[330px]" : "top-[374px]";
-
-  return (
-    <div
-      className={`pointer-events-none fixed right-[300px] ${topClass} z-50 hidden w-[324px] overflow-hidden rounded-md border border-black/[0.12] bg-[#2F2F2F] p-2.5 text-white shadow-[0_8px_24px_rgba(0,0,0,0.22)] group-hover:block group-focus-within:block`}
+    <button
+      onClick={onSelect}
+      className="mx-1.5 flex items-center rounded-md p-1.5 text-left text-[14px] hover:bg-black/[0.055]"
     >
-      <PreviewMockup previewKey={previewKey} tone={preview.tone} title={preview.title} />
-      <div className="mt-1.5 text-[14px] font-semibold leading-5 text-white">{preview.description}</div>
-    </div>
-  );
-}
-
-function PreviewMockup({
-  previewKey,
-  tone,
-  title,
-}: {
-  previewKey: TemplatePreviewKey;
-  tone: "green" | "blue" | "red";
-  title: string;
-}) {
-  const colors = {
-    green: {
-      background: "bg-[#20392C]",
-      accent: "text-[#4FB875]",
-      line: "bg-[#4E735F]",
-      chipA: "bg-[#746F65]",
-      chipB: "bg-[#4E93CF]",
-      chipC: "bg-[#4F9B70]",
-    },
-    blue: {
-      background: "bg-[#213A56]",
-      accent: "text-[#3B8BDC]",
-      line: "bg-[#527399]",
-      chipA: "bg-[#746F65]",
-      chipB: "bg-[#4E93CF]",
-      chipC: "bg-[#4F9B70]",
-    },
-    red: {
-      background: "bg-[#4A2928]",
-      accent: "text-[#E05A55]",
-      line: "bg-[#76524E]",
-      chipA: "bg-[#746F65]",
-      chipB: "bg-[#6A4B48]",
-      chipC: "bg-[#6A4B48]",
-    },
-  }[tone];
-
-  return (
-    <div className={`rounded-sm ${colors.background} px-5 py-3`}>
-      <div className="mb-2 flex items-center gap-1.5">
-        {previewKey === "tasks" ? (
-          <Check className={`h-3.5 w-3.5 ${colors.accent}`} strokeWidth={3} />
-        ) : previewKey === "projects" ? (
-          <IterateIcon className={`h-3.5 w-3.5 ${colors.accent}`} />
-        ) : (
-          <FileText className={`h-3.5 w-3.5 ${colors.accent}`} strokeWidth={2.5} />
-        )}
-        <span className="text-[14px] font-semibold text-white">{title}</span>
-      </div>
-      <div className="grid grid-cols-3 gap-x-4 gap-y-2 text-[11px] font-semibold text-white/65">
-        <span>{previewKey === "docs" ? "Doc name" : previewKey === "projects" ? "" : "Task name"}</span>
-        <span>{previewKey === "docs" ? "Created by" : "Status"}</span>
-        <span>{previewKey === "docs" ? "Created time" : "Assignee"}</span>
-        <MiniCell className={colors.line} />
-        <MiniStatus className={colors.chipA}>{previewKey === "projects" ? "Not started" : "Not star..."}</MiniStatus>
-        <MiniAvatar />
-        <MiniCell className={colors.line} />
-        <MiniStatus className={colors.chipB}>In progr...</MiniStatus>
-        <MiniAvatar />
-        <MiniCell className={colors.line} />
-        <MiniStatus className={colors.chipC}>Done</MiniStatus>
-        <MiniAvatar />
-      </div>
-    </div>
-  );
-}
-
-function MiniCell({ className }: { className: string }) {
-  return <span className={`mt-1 h-1.5 w-[54px] rounded-full opacity-70 ${className}`} />;
-}
-
-function MiniStatus({ className, children }: { className: string; children: React.ReactNode }) {
-  return (
-    <span className={`flex h-4 items-center justify-center rounded-full px-1 text-[9px] font-semibold text-white/90 ${className}`}>
-      {children}
-    </span>
-  );
-}
-
-function MiniAvatar() {
-  return (
-    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-white text-[9px] font-bold text-[#2F2F2F]">
-      A
-    </span>
+      {icon}
+      <span className="truncate text-[14px] leading-5 text-[#2C2C2B]">{label}</span>
+    </button>
   );
 }
 
