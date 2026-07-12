@@ -44,11 +44,18 @@ export function TrashPopover({ onClose }: { onClose: () => void }) {
   const [query, setQuery] = useState("");
   const ref = useClickOutside(onClose, "#trash-trigger");
 
+  // Anchor to the sidebar "Trash" row; open upward since it sits at the bottom.
+  const trig = typeof document !== "undefined" ? document.getElementById("trash-trigger")?.getBoundingClientRect() : null;
+  const left = trig ? trig.left : 262;
+  const bottom = trig ? window.innerHeight - trig.top + 6 : 240;
+
   return (
     <div
       ref={ref}
-      className="fixed left-[262px] top-[378px] z-[60] w-[414px] rounded-[10px] bg-white p-1.5 text-[14px] text-[#2C2C2B]"
+      className="fixed z-[60] w-[414px] rounded-[10px] bg-white p-1.5 text-[14px] text-[#2C2C2B]"
       style={{
+        left,
+        bottom,
         boxShadow:
           "rgba(25,25,25,0.05) 0px 20px 24px 0px, rgba(25,25,25,0.027) 0px 5px 8px 0px, rgba(42,28,0,0.07) 0px 0px 0px 1px",
       }}
