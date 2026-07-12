@@ -1478,23 +1478,23 @@ function TemplateCustomizeModal({
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 px-6"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-6"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative flex max-h-[calc(100vh-64px)] w-[min(1180px,calc(100vw-160px))] overflow-hidden rounded-xl bg-[#FCFCFB] text-[#2C2C2B] shadow-[0_24px_48px_rgba(25,25,25,0.24),0_4px_12px_rgba(25,25,25,0.14),0_0_0_1px_rgba(42,28,0,0.07)]"
+        className="relative flex max-h-[calc(100vh-64px)] w-[min(1180px,calc(100vw-160px))] overflow-hidden rounded-[14px] border border-white/[0.09] bg-[#1D1D1D] text-[#EDECEA] shadow-[0_24px_60px_rgba(0,0,0,0.55)]"
       >
         <button
           onClick={onClose}
-          className="absolute left-6 top-6 z-10 flex h-7 w-7 items-center justify-center rounded-md text-[#8A8985] hover:bg-black/[0.05]"
+          className="absolute left-6 top-6 z-10 flex h-7 w-7 items-center justify-center rounded-md text-[#9B9A97] hover:bg-white/[0.06]"
         >
           <X className="h-5 w-5" />
         </button>
 
         <div className="flex w-[460px] shrink-0 flex-col px-9 pb-8 pt-[76px]">
           <div>
-            <h2 className="text-[27px] font-bold leading-tight text-[#2C2C2B]">Customize {preview.title}</h2>
-            <p className="mt-2 text-[17px] font-medium text-[#7D7A75]">Select features to turn on or off</p>
+            <h2 className="text-[27px] font-bold leading-tight text-white">Customize {preview.title}</h2>
+            <p className="mt-2 text-[17px] font-medium text-[#9B9A97]">Select features to turn on or off</p>
           </div>
 
           <div className="mt-5 flex flex-wrap gap-2.5">
@@ -1504,10 +1504,10 @@ function TemplateCustomizeModal({
                 <button
                   key={feature}
                   className={
-                    "flex h-10 items-center gap-2 rounded-full bg-white px-4 text-[18px] font-semibold text-[#2C2C2B] " +
+                    "flex h-10 items-center gap-2 rounded-full bg-white/[0.03] px-4 text-[18px] font-semibold " +
                     (active
-                      ? "shadow-[0_0_0_1.5px_#2383E2]"
-                      : "shadow-[0_0_0_1px_#E6E5E3]")
+                      ? "text-white shadow-[0_0_0_1.5px_#2383E2]"
+                      : "text-[#B5B4B1] shadow-[0_0_0_1px_rgba(255,255,255,0.14)]")
                   }
                 >
                   <FeatureGlyph label={feature} active={active} />
@@ -1526,7 +1526,7 @@ function TemplateCustomizeModal({
         </div>
 
         <div className="flex flex-1 items-stretch py-6 pr-6">
-          <div className="flex flex-1 flex-col rounded-xl border border-black/[0.08] bg-white px-12 py-10 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+          <div className="flex flex-1 flex-col rounded-xl border border-white/[0.07] bg-[#191919] px-12 py-10">
             <div className="flex items-center gap-4">
               {templateKey === "tasks" ? (
                 <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#2D9964] text-white">
@@ -1537,11 +1537,11 @@ function TemplateCustomizeModal({
               ) : (
                 <FileText className="h-10 w-10 fill-[#D84F4B] text-[#D84F4B]" strokeWidth={1.9} />
               )}
-              <h3 className="text-[34px] font-bold text-[#2C2C2B]">{preview.title}</h3>
+              <h3 className="text-[34px] font-bold text-white">{preview.title}</h3>
             </div>
 
-            <div className="mt-6 flex items-center gap-3 text-[18px] font-semibold text-[#7D7A75]">
-              <span className="rounded-full bg-[rgba(42,28,0,0.07)] px-3 py-1.5 text-[#2C2C2B]">
+            <div className="mt-6 flex items-center gap-3 text-[18px] font-semibold text-[#8F8E8B]">
+              <span className="rounded-full bg-white/[0.08] px-3 py-1.5 text-white">
                 {isProjects ? "➜ By Status" : isDocs ? "★ All Docs" : "★ All Tasks"}
               </span>
               <span>{isProjects ? "★ All Projects" : isDocs ? "♟ My Docs" : "➜ By Status"}</span>
@@ -1550,7 +1550,7 @@ function TemplateCustomizeModal({
 
             {isProjects ? <ProjectBoardPreview /> : <TemplateTablePreview templateKey={templateKey} />}
 
-            {isProjects && <div className="mt-auto text-right text-[15px] font-semibold text-[#8A8985]">4 hidden properties</div>}
+            {isProjects && <div className="mt-auto text-right text-[15px] font-semibold text-[#6F6E6B]">4 hidden properties</div>}
           </div>
         </div>
       </div>
@@ -1589,19 +1589,19 @@ function TemplateTablePreview({ templateKey }: { templateKey: TemplatePreviewKey
       ];
 
   return (
-    <div className="mt-7 overflow-hidden text-[18px] font-semibold text-[#2C2C2B]">
-      <div className="grid grid-cols-[1.6fr_0.9fr_0.9fr] border-b border-black/[0.08] text-[17px] text-[#7D7A75]">
+    <div className="mt-7 overflow-hidden text-[18px] font-semibold text-white">
+      <div className="grid grid-cols-[1.6fr_0.9fr_0.9fr] border-b border-white/[0.08] text-[17px] text-[#8F8E8B]">
         <div className="py-2">Aa {templateKey === "docs" ? "Doc name" : "Task name"}</div>
         <div className="py-2">{templateKey === "docs" ? "☰ Category" : "✣ Status"}</div>
         <div className="py-2">{templateKey === "docs" ? "☻ Created by" : "☷ Assignee"}</div>
       </div>
       {rows.map((row) => (
-        <div key={row[0]} className="grid h-[48px] grid-cols-[1.6fr_0.9fr_0.9fr] border-b border-black/[0.06]">
+        <div key={row[0]} className="grid h-[48px] grid-cols-[1.6fr_0.9fr_0.9fr] border-b border-white/[0.055]">
           <div className="flex items-center truncate pr-3">{row[0]}</div>
           <div className="flex items-center">
             <StatusPill label={row[1]} />
           </div>
-          <div className="flex items-center truncate text-[#5F5E59]">{templateKey === "docs" ? row[2] : row[2]}</div>
+          <div className="flex items-center truncate text-[#9B9A97]">{templateKey === "docs" ? row[2] : row[2]}</div>
         </div>
       ))}
     </div>
@@ -1619,13 +1619,13 @@ function ProjectBoardPreview() {
 
 function BoardColumn({ title, tone, item, tag }: { title: string; tone: "gray" | "blue"; item: string; tag: string }) {
   return (
-    <div className={tone === "blue" ? "rounded-xl bg-[#EAF2FB] p-4" : "rounded-xl bg-black/[0.03] p-4"}>
-      <span className={tone === "blue" ? "rounded-full bg-[rgba(0,118,217,0.20)] px-3 py-1 text-[16px] font-semibold text-[#264A72]" : "rounded-full bg-[rgba(28,19,1,0.11)] px-3 py-1 text-[16px] font-semibold text-[#494846]"}>
+    <div className={tone === "blue" ? "rounded-xl bg-[#16283C] p-4" : "rounded-xl bg-white/[0.03] p-4"}>
+      <span className={`rounded-full px-3 py-1 text-[16px] font-semibold ${tone === "blue" ? DARK_CHIP_TONES.blue : DARK_CHIP_TONES.gray}`}>
         {title}
       </span>
-      <div className="mt-5 rounded-lg border border-black/[0.08] bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-        <div className="text-[19px] font-bold text-[#2C2C2B]">{item}</div>
-        <span className={tag === "High" ? "mt-4 inline-flex rounded bg-[rgba(211,47,47,0.16)] px-2 py-1 text-[13px] font-bold text-[#6D3531]" : "mt-4 inline-flex rounded bg-[rgba(203,145,0,0.20)] px-2 py-1 text-[13px] font-bold text-[#655121]"}>
+      <div className="mt-5 rounded-lg border border-white/[0.07] bg-[#232323] p-4 shadow-[0_1px_2px_rgba(0,0,0,0.25)]">
+        <div className="text-[19px] font-bold text-white">{item}</div>
+        <span className={`mt-4 inline-flex rounded px-2 py-1 text-[13px] font-bold ${tag === "High" ? DARK_CHIP_TONES.red : DARK_CHIP_TONES.yellow}`}>
           {tag}
         </span>
       </div>
@@ -2051,23 +2051,21 @@ function GalleryMiniCell({ cell }: { cell: GalleryCell }) {
   );
 }
 
-function StatusPill({ label }: { label: string }) {
-  const style =
-    label === "Done"
-      ? { chip: "bg-[rgba(0,96,38,0.157)] text-[#2A533C]", dot: "bg-[#3C8A5F]" }
-      : label === "In progress"
-        ? { chip: "bg-[rgba(0,118,217,0.20)] text-[#264A72]", dot: "bg-[#3B82D0]" }
-        : label === "Not started"
-          ? { chip: "bg-[rgba(28,19,1,0.11)] text-[#494846]", dot: "bg-[#8A8985]" }
-          : label === "Proposal"
-            ? { chip: "bg-[rgba(203,145,0,0.20)] text-[#655121]", dot: "bg-[#C0932F]" }
-            : label === "Customer research"
-              ? { chip: "bg-[rgba(0,118,217,0.20)] text-[#264A72]", dot: "bg-[#3B82D0]" }
-              : { chip: "bg-[rgba(186,72,3,0.16)] text-[#6A4222]", dot: "bg-[#C1783A]" };
+// Maps a preview label to a chip tone, shared by the dark Customize modal.
+const STATUS_TONE: Record<string, keyof typeof CHIP_TONES> = {
+  "Done": "green",
+  "In progress": "blue",
+  "Not started": "gray",
+  "Strategy doc": "orange",
+  "Proposal": "yellow",
+  "Customer research": "blue",
+};
 
+function StatusPill({ label }: { label: string }) {
+  const tone = STATUS_TONE[label] ?? "orange";
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded px-2 py-0.5 text-[15px] font-semibold ${style.chip}`}>
-      <span className={`h-[7px] w-[7px] shrink-0 rounded-full ${style.dot}`} />
+    <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-[15px] font-semibold ${DARK_CHIP_TONES[tone]}`}>
+      <span className={`h-[7px] w-[7px] shrink-0 rounded-full ${DARK_CHIP_DOT[tone]}`} />
       {label}
     </span>
   );
