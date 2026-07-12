@@ -24,7 +24,7 @@ import {
   GripVertical,
   Trash2,
 } from "lucide-react";
-import { Dropdown, MenuItem, MenuLabel, MenuSeparator } from "./menu";
+import { Dropdown, MenuItem, MenuSeparator } from "./menu";
 import { NotionFilterIcon, NotionSearchIcon, NotionSettingsIcon } from "./icons";
 import { SortPanel, type SortRule } from "./sort-panel";
 import { GroupPanel } from "./group-panel";
@@ -106,7 +106,8 @@ const COL = { by: "w-[200px]", src: "w-[200px]", edited: "w-[200px]", visited: "
 
 export function MainPanel({ initialTab = "favorites", favorites }: { initialTab?: TabKey; favorites?: Set<string> }) {
   const [active, setActive] = useState<TabKey>(initialTab);
-  const [layout, setLayout] = useState<LayoutKind>("table");
+  // Layout is fixed to the table view; the layout switcher was removed.
+  const [layout] = useState<LayoutKind>("table");
   const [hiddenCols, setHiddenCols] = useState<Set<string>>(new Set());
   const toggleCol = (label: string) =>
     setHiddenCols((cur) => {
@@ -407,13 +408,8 @@ export function MainPanel({ initialTab = "favorites", favorites }: { initialTab?
                 <CollectionSettingsMenu
                   sortLabel={(sortRules[0]?.field ?? "Page name") + ((sortRules[0]?.direction ?? "asc") === "asc" ? " ↑" : " ↓")}
                   groupLabel={groupLabelFor(selectedGroup)}
-                  layout={layout}
                   hiddenCols={hiddenCols}
                   onToggleCol={toggleCol}
-                  onLayout={(next) => {
-                    setLayout(next);
-                    close();
-                  }}
                   onSort={() => {
                     setSortPanelOpen(true);
                     close();
@@ -1327,74 +1323,6 @@ function ChartView({ rows }: { rows: PageRow[] }) {
   );
 }
 
-function TableLayoutIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 16 16" fill="none" className={className}>
-      <rect x="2" y="3" width="12" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.3" />
-      <path d="M2 6.5h12M6 6.5V13" stroke="currentColor" strokeWidth="1.3" />
-    </svg>
-  );
-}
-
-function ListLayoutIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 16 16" fill="none" className={className}>
-      <path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function BoardLayoutIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 16 16" fill="none" className={className}>
-      <rect x="2" y="2.5" width="4" height="11" rx="1" stroke="currentColor" strokeWidth="1.3" />
-      <rect x="7.5" y="2.5" width="4" height="8" rx="1" stroke="currentColor" strokeWidth="1.3" />
-      <rect x="13" y="2.5" width="1.5" height="5.5" rx="0.75" stroke="currentColor" strokeWidth="1.3" />
-    </svg>
-  );
-}
-
-function GalleryLayoutIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 16 16" fill="none" className={className}>
-      <rect x="2" y="2.5" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.3" />
-      <rect x="9" y="2.5" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.3" />
-      <rect x="2" y="9" width="5" height="4.5" rx="1" stroke="currentColor" strokeWidth="1.3" />
-      <rect x="9" y="9" width="5" height="4.5" rx="1" stroke="currentColor" strokeWidth="1.3" />
-    </svg>
-  );
-}
-
-function CalendarLayoutIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 16 16" fill="none" className={className}>
-      <rect x="2" y="3" width="12" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.3" />
-      <path d="M2 6h12M5.5 2v2.5M10.5 2v2.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function TimelineLayoutIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 16 16" fill="none" className={className}>
-      <rect x="2" y="3" width="7" height="2.5" rx="1.25" fill="currentColor" />
-      <rect x="6" y="6.75" width="8" height="2.5" rx="1.25" fill="currentColor" />
-      <rect x="3.5" y="10.5" width="6" height="2.5" rx="1.25" fill="currentColor" />
-    </svg>
-  );
-}
-
-function ChartLayoutIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 16 16" fill="none" className={className}>
-      <path d="M2 14h12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-      <rect x="3" y="8" width="2.4" height="4" rx="0.5" fill="currentColor" />
-      <rect x="6.8" y="5" width="2.4" height="7" rx="0.5" fill="currentColor" />
-      <rect x="10.6" y="9.5" width="2.4" height="2.5" rx="0.5" fill="currentColor" />
-    </svg>
-  );
-}
-
 function ToolbarBtn({ children, onClick, active, label }: { children: React.ReactNode; onClick?: () => void; active?: boolean; label?: string; }) {
   return (
     <button
@@ -1426,10 +1354,8 @@ function groupLabelFor(groupId: string): string {
 function CollectionSettingsMenu({
   sortLabel,
   groupLabel,
-  layout,
   hiddenCols,
   onToggleCol,
-  onLayout,
   onSort,
   onGroup,
   onClose,
@@ -1438,10 +1364,8 @@ function CollectionSettingsMenu({
 }: {
   sortLabel: string;
   groupLabel: string;
-  layout: LayoutKind;
   hiddenCols: Set<string>;
   onToggleCol: (label: string) => void;
-  onLayout: (next: LayoutKind) => void;
   onSort: () => void;
   onGroup: () => void;
   onClose: () => void;
@@ -1549,78 +1473,7 @@ function CollectionSettingsMenu({
         value={groupLabel}
         onClick={onGroup}
       />
-      <MenuSeparator />
-      <MenuLabel>Layout</MenuLabel>
-      <LayoutMenuItem
-        icon={<TableLayoutIcon className="h-5 w-5" />}
-        label="Table"
-        active={layout === "table"}
-        onClick={() => onLayout("table")}
-      />
-      <LayoutMenuItem
-        icon={<ListLayoutIcon className="h-5 w-5" />}
-        label="List"
-        active={layout === "list"}
-        onClick={() => onLayout("list")}
-      />
-      <LayoutMenuItem
-        icon={<BoardLayoutIcon className="h-5 w-5" />}
-        label="Board"
-        active={layout === "board"}
-        onClick={() => onLayout("board")}
-      />
-      <LayoutMenuItem
-        icon={<CalendarLayoutIcon className="h-5 w-5" />}
-        label="Calendar"
-        active={layout === "calendar"}
-        onClick={() => onLayout("calendar")}
-      />
-      <LayoutMenuItem
-        icon={<TimelineLayoutIcon className="h-5 w-5" />}
-        label="Timeline"
-        active={layout === "timeline"}
-        onClick={() => onLayout("timeline")}
-      />
-      <LayoutMenuItem
-        icon={<GalleryLayoutIcon className="h-5 w-5" />}
-        label="Gallery"
-        active={layout === "gallery"}
-        onClick={() => onLayout("gallery")}
-      />
-      <LayoutMenuItem
-        icon={<ChartLayoutIcon className="h-5 w-5" />}
-        label="Chart"
-        active={layout === "chart"}
-        onClick={() => onLayout("chart")}
-      />
     </div>
-  );
-}
-
-function LayoutMenuItem({
-  icon,
-  label,
-  active,
-  onClick,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  active: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="flex h-9 w-full items-center gap-2.5 rounded-md px-2 text-left text-[14px] text-[#37352F] transition-colors hover:bg-black/[0.05]"
-    >
-      <span className="flex h-5 w-5 shrink-0 items-center justify-center text-[#5F5E59]">{icon}</span>
-      <span className="min-w-0 flex-1 truncate">{label}</span>
-      {active && (
-        <svg className="h-4 w-4 shrink-0 text-[#2C2C2B]" viewBox="0 0 16 16" fill="currentColor">
-          <path d="M11.834 3.309a.625.625 0 0 1 1.072.642l-5.244 8.74a.625.625 0 0 1-1.01.085L3.155 8.699a.626.626 0 0 1 .95-.813l2.93 3.419z" />
-        </svg>
-      )}
-    </button>
   );
 }
 
