@@ -1401,7 +1401,7 @@ function SuggestedHoverPreview({ tplKey, anchor }: { tplKey: TemplatePreviewKey;
       style={{ left, top }}
     >
       <div className="flex items-center gap-2 px-4 pt-3.5 text-[14px] font-semibold leading-5 text-white/95">
-        <span className="flex items-center [&_svg]:h-4 [&_svg]:w-4">{t.previewIcon}</span>
+        <span className="flex items-center">{t.previewIcon}</span>
         {t.title}
       </div>
       {/* Mini preview bleeds off the card's right edge, like Notion */}
@@ -1418,7 +1418,7 @@ function SuggestedHoverPreview({ tplKey, anchor }: { tplKey: TemplatePreviewKey;
 // Larger mini table for the dark hover card. Rendered wider than the card so
 // the rightmost (person) column clips at the edge, and status chips truncate —
 // the "peek into the template" look from Notion.
-const PREVIEW_COLS = "grid grid-cols-[1fr_92px_60px] gap-x-3";
+const PREVIEW_COLS = "grid grid-cols-[1fr_82px_58px] gap-x-3";
 
 function SuggestedPreviewGrid({ columns, rows }: { columns: string[]; rows: GalleryCell[][] }) {
   return (
@@ -1449,7 +1449,7 @@ function PreviewCell({ cell }: { cell: GalleryCell }) {
   if (cell === "avatar") return <span className="h-4 w-4 rounded-full bg-white/25" />;
   return (
     <span
-      className={`flex h-[19px] max-w-full items-center gap-1.5 rounded-[6px] px-2 text-[10.5px] font-medium leading-none ${DARK_CHIP_TONES[cell.tone]}`}
+      className={`flex h-[19px] max-w-full items-center gap-1.5 rounded-full px-2 text-[10.5px] font-medium leading-none ${DARK_CHIP_TONES[cell.tone]}`}
     >
       <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${DARK_CHIP_DOT[cell.tone]}`} />
       <span className="truncate">{cell.label}</span>
@@ -1659,23 +1659,24 @@ const CHIP_DOT: Record<keyof typeof CHIP_TONES, string> = {
   yellow: "bg-[#C0932F]",
 };
 
-// Dark-theme status chips for the Suggested hover preview card.
+// Dark-theme status chips for the Suggested hover preview card — solid pill
+// fills with light text, matching Notion's dark-mode select options.
 const DARK_CHIP_TONES: Record<keyof typeof CHIP_TONES, string> = {
-  gray: "bg-[rgba(255,255,255,0.11)] text-[#C9C8C6]",
-  blue: "bg-[rgba(35,131,226,0.30)] text-[#A6C9EF]",
-  green: "bg-[rgba(45,153,100,0.30)] text-[#8FD1AB]",
-  red: "bg-[rgba(211,79,75,0.30)] text-[#ECA9A6]",
-  orange: "bg-[rgba(216,154,46,0.30)] text-[#E6C589]",
-  yellow: "bg-[rgba(203,148,51,0.30)] text-[#DEC788]",
+  gray: "bg-[rgba(255,255,255,0.13)] text-[#CFCECC]",
+  blue: "bg-[#2C5A87] text-[#D4E6F8]",
+  green: "bg-[#1F5138] text-[#CDE6D6]",
+  red: "bg-[#5E2E2C] text-[#F0CBC8]",
+  orange: "bg-[#5C4423] text-[#EBD3A9]",
+  yellow: "bg-[#544521] text-[#E5D19A]",
 };
 
 const DARK_CHIP_DOT: Record<keyof typeof CHIP_TONES, string> = {
-  gray: "bg-[#9B9A97]",
-  blue: "bg-[#5A9BDD]",
-  green: "bg-[#4F9E71]",
-  red: "bg-[#D66C68]",
-  orange: "bg-[#CE8B47]",
-  yellow: "bg-[#CDA144]",
+  gray: "bg-[#A6A5A2]",
+  blue: "bg-[#5B9BD8]",
+  green: "bg-[#4FA574]",
+  red: "bg-[#D97873]",
+  orange: "bg-[#D19A4E]",
+  yellow: "bg-[#D3AC4C]",
 };
 
 type GalleryTint = "green" | "blue" | "red" | "orange" | "yellow" | "neutral";
@@ -1709,7 +1710,7 @@ const GALLERY_TEMPLATES: GalleryTemplate[] = [
     description: "Stay organized with tasks, your way.",
     tint: "green",
     previewIcon: (
-      <span className="flex h-3.5 w-3.5 items-center justify-center rounded-[4px] bg-[#2D9964] text-white">
+      <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#2D9964] text-white">
         <Check className="h-2.5 w-2.5" strokeWidth={3.5} />
       </span>
     ),
