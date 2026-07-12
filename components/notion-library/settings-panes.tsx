@@ -112,17 +112,6 @@ function Btn({ children, onClick, variant = "default" }: { children: React.React
   );
 }
 
-function Tile({ color, letter, name }: { color: string; letter: string; name: string }) {
-  return (
-    <button onClick={() => toast(name)} className="flex items-center gap-3 rounded-lg border border-black/[0.08] p-3 text-left transition-colors hover:bg-black/[0.02]">
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-[15px] font-semibold text-white" style={{ backgroundColor: color }}>{letter}</span>
-      <span className="min-w-0 flex-1">
-        <span className="block truncate text-[14px] font-medium text-[#2C2C2B]">{name}</span>
-      </span>
-    </button>
-  );
-}
-
 /* ------------ panes ------------ */
 export function PreferencesPane() {
   return (

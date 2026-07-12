@@ -33,8 +33,11 @@ export function SortPanel({
   onUpdateSort,
 }: SortPanelProps) {
   return (
-    <div className="fixed inset-0 z-50 bg-black/50">
-      <div className="fixed bottom-0 right-0 top-0 w-[380px] flex flex-col bg-white border-l border-black/[0.08]">
+    <div className="fixed inset-0 z-50" onClick={onClose}>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="fixed bottom-0 right-0 top-0 w-[380px] flex flex-col bg-white border-l border-black/[0.08] shadow-[0_0_24px_rgba(0,0,0,0.12)] animate-in slide-in-from-right-4 duration-200"
+      >
         {/* Header */}
         <div className="flex h-[52px] items-center justify-between border-b border-black/[0.06] px-4">
           <button

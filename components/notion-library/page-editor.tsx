@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Check, MonitorPlay, Table2, FileText, MoreHorizontal } from "lucide-react";
+import { Check, MonitorPlay, Table2, FileText, MoreHorizontal, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { NotionAiMark } from "./icons";
 
@@ -19,6 +19,27 @@ const SLASH_OPTIONS: { type: BlockType; label: string; hint: string }[] = [
   { type: "todo", label: "To-do list", hint: "Track tasks with a checkbox." },
   { type: "bullet", label: "Bulleted list", hint: "Create a simple bulleted list." },
 ];
+
+type MentionItem = { group: string; label: string; insert: string; icon: React.ReactNode };
+
+const MENTION_ITEMS: MentionItem[] = [
+  { group: "People", label: "Alex Morgan", insert: "@Alex Morgan", icon: <Avatar name="Alex Morgan" /> },
+  { group: "People", label: "Abhishek Sharma", insert: "@Abhishek Sharma", icon: <Avatar name="Abhishek Sharma" /> },
+  { group: "Link to page", label: "Welcome to Notion", insert: "Welcome to Notion", icon: <span className="text-[13px] leading-none">👋</span> },
+  { group: "Link to page", label: "To Do List", insert: "To Do List", icon: <span className="text-[13px] leading-none">✅</span> },
+  { group: "Link to page", label: "New page", insert: "New page", icon: <FileText className="h-3.5 w-3.5 text-[#91918E]" strokeWidth={1.8} /> },
+  { group: "Date", label: "Today", insert: "@Today", icon: <Calendar className="h-3.5 w-3.5 text-[#5F5E59]" strokeWidth={1.8} /> },
+  { group: "Date", label: "Tomorrow", insert: "@Tomorrow", icon: <Calendar className="h-3.5 w-3.5 text-[#5F5E59]" strokeWidth={1.8} /> },
+  { group: "Date", label: "Next week", insert: "@Next week", icon: <Calendar className="h-3.5 w-3.5 text-[#5F5E59]" strokeWidth={1.8} /> },
+];
+
+function Avatar({ name }: { name: string }) {
+  return (
+    <span className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[#E28026] text-[9px] font-semibold text-white">
+      {name[0]}
+    </span>
+  );
+}
 
 let counter = 0;
 const uid = () => `b${++counter}-${Math.floor(performance.now())}`;
@@ -250,6 +271,50 @@ function BlockRow({
   onToggleCheck: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const [mention, setMention] = useState<{ at: number; query: string } | null>(null);
+
+  const mentionMatches = mention
+    ? MENTION_ITEMS.filter((m) => m.label.toLowerCase().includes(mention.query.toLowerCase()))
+    : [];
+
+  // Detect an active "@" mention token immediately before the caret.
+  const detectMention = () => {
+    const el = ref.current;
+    if (!el) return;
+    const sel = window.getSelection();
+    const t = el.textContent ?? "";
+    const caret = sel && sel.anchorNode && el.contains(sel.anchorNode) ? sel.anchorOffset : t.length;
+    const before = t.slice(0, caret);
+    const at = before.lastIndexOf("@");
+    if (at !== -1 && !/\s/.test(before.slice(at + 1))) {
+      setMention({ at, query: before.slice(at + 1) });
+    } else {
+      setMention(null);
+    }
+  };
+
+  const pickMention = (item: MentionItem) => {
+    const el = ref.current;
+    if (!el || !mention) return;
+    const t = el.textContent ?? "";
+    const end = mention.at + 1 + mention.query.length;
+    const newText = t.slice(0, mention.at) + item.insert + " " + t.slice(end);
+    el.textContent = newText;
+    onChange(newText);
+    setMention(null);
+    // caret after the inserted mention
+    const node = el.firstChild;
+    const pos = mention.at + item.insert.length + 1;
+    if (node && node.textContent) {
+      const range = document.createRange();
+      range.setStart(node, Math.min(pos, node.textContent.length));
+      range.collapse(true);
+      const s = window.getSelection();
+      s?.removeAllRanges();
+      s?.addRange(range);
+    }
+    el.focus();
+  };
 
   // Set initial text once (uncontrolled to preserve caret).
   useEffect(() => {
@@ -291,7 +356,7 @@ function BlockRow({
   };
 
   return (
-    <div className="group flex items-start gap-1.5 py-0.5">
+    <div className="group relative flex items-start gap-1.5 py-0.5">
       {block.type === "todo" && (
         <button
           onClick={onToggleCheck}
@@ -316,10 +381,20 @@ function BlockRow({
         onInput={(e) => {
           const t = e.currentTarget.textContent ?? "";
           if (t === "/") onSlash();
+          detectMention();
           onChange(t);
         }}
+        onKeyUp={detectMention}
+        onClick={detectMention}
+        onBlur={() => setTimeout(() => setMention(null), 120)}
         onKeyDown={(e) => {
-          if (e.key === "Enter" && !e.shiftKey) {
+          if (mention && mentionMatches.length > 0 && (e.key === "Enter" || e.key === "Tab")) {
+            e.preventDefault();
+            pickMention(mentionMatches[0]);
+          } else if (mention && e.key === "Escape") {
+            e.preventDefault();
+            setMention(null);
+          } else if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
             onEnter();
           } else if (e.key === "Backspace" && (e.currentTarget.textContent ?? "") === "") {
@@ -333,6 +408,35 @@ function BlockRow({
           (block.type === "todo" && block.checked ? " text-[#9B9A97] line-through" : "")
         }
       />
+      {mention && mentionMatches.length > 0 && (
+        <MentionMenu items={mentionMatches} onPick={pickMention} />
+      )}
+    </div>
+  );
+}
+
+function MentionMenu({ items, onPick }: { items: MentionItem[]; onPick: (item: MentionItem) => void }) {
+  const groups = ["People", "Link to page", "Date"].filter((g) => items.some((i) => i.group === g));
+  return (
+    <div className="absolute left-6 top-7 z-50 max-h-[320px] w-[280px] overflow-y-auto rounded-lg border border-black/[0.08] bg-white p-1 shadow-[0_8px_24px_rgba(0,0,0,0.14)]">
+      {groups.map((g) => (
+        <div key={g}>
+          <div className="px-2 pb-0.5 pt-1.5 text-[11px] font-medium uppercase tracking-wide text-[#9B9A97]">{g}</div>
+          {items.filter((i) => i.group === g).map((item) => (
+            <button
+              key={item.group + item.label}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                onPick(item);
+              }}
+              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-black/[0.05]"
+            >
+              <span className="flex h-[18px] w-[18px] shrink-0 items-center justify-center">{item.icon}</span>
+              <span className="truncate text-[14px] text-[#2C2C2B]">{item.label}</span>
+            </button>
+          ))}
+        </div>
+      ))}
     </div>
   );
 }

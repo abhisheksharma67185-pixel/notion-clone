@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { toast } from "sonner";
 import {
   Lock,
@@ -24,7 +24,6 @@ import {
   Trash2,
   Baseline,
   MoveHorizontal,
-  Sparkles,
   PencilLine,
   Languages,
   Undo2,
@@ -35,6 +34,11 @@ import {
   Globe,
   Check,
   TableProperties,
+  Image as ImageIcon,
+  MessageSquare,
+  Smile,
+  X,
+  Plus,
 } from "lucide-react";
 import { Dropdown, MenuLabel, useClickOutside } from "./menu";
 import { PageEditor } from "./page-editor";
@@ -69,6 +73,11 @@ export function DocumentView({
   const [pageFont, setPageFont] = useState("Default");
   const [smallText, setSmallText] = useState(false);
   const [fullWidth, setFullWidth] = useState(false);
+  const [cover, setCover] = useState<number | null>(null);
+  const [commentsOpen, setCommentsOpen] = useState(false);
+  const [infoOpen, setInfoOpen] = useState(false);
+  const infoRef = useRef<HTMLButtonElement>(null);
+  const showPageChrome = kind !== "database" && kind !== "meeting";
   const fontFamily =
     pageFont === "Serif"
       ? "Georgia, 'Times New Roman', serif"
@@ -77,7 +86,8 @@ export function DocumentView({
       : "inherit";
 
   return (
-    <main className="flex h-dvh flex-1 flex-col overflow-y-auto bg-white text-[#2C2C2B]">
+    <div className="flex h-dvh flex-1 overflow-hidden bg-white">
+    <main className="group flex h-dvh flex-1 flex-col overflow-y-auto bg-white text-[#2C2C2B]">
       {/* Top bar */}
       <div className="flex h-11 shrink-0 items-center justify-between px-3">
         <div className="flex items-center gap-1.5 text-[14px] text-[#5F5E59]">
@@ -112,7 +122,13 @@ export function DocumentView({
           </Dropdown>
         </div>
         <div className="flex items-center gap-1 text-[#5F5E59]">
-          <span className="mr-1 text-[13px] text-[#9B9A97]">Edited just now</span>
+          <button
+            ref={infoRef}
+            onClick={() => setInfoOpen((v) => !v)}
+            className="mr-1 rounded px-1 py-0.5 text-[13px] text-[#9B9A97] hover:bg-black/[0.04]"
+          >
+            Edited just now
+          </button>
           <Dropdown
             width={460}
             align="right"
@@ -131,6 +147,11 @@ export function DocumentView({
           >
             {(close) => <SharePopover close={close} />}
           </Dropdown>
+          {showPageChrome && (
+            <TopIcon active={commentsOpen} onClick={() => setCommentsOpen((v) => !v)}>
+              <MessageSquare className="h-[18px] w-[18px]" strokeWidth={1.8} />
+            </TopIcon>
+          )}
           <TopIcon onClick={() => toast("Copied link")}><Link2 className="h-[18px] w-[18px]" strokeWidth={1.8} /></TopIcon>
           <TopIcon onClick={() => onToggleFavorite?.()}>
             <Star
@@ -169,6 +190,25 @@ export function DocumentView({
         </div>
       </div>
 
+      {/* Cover image */}
+      {showPageChrome && cover !== null && (
+        <CoverBanner
+          cover={cover}
+          onChange={() => setCover((c) => ((c ?? 0) + 1) % COVER_GRADIENTS.length)}
+          onRemove={() => setCover(null)}
+        />
+      )}
+
+      {/* Add cover / Add comment (reveal on hover) */}
+      {showPageChrome && (
+        <PageChromeToolbar
+          hasCover={cover !== null}
+          fullWidth={fullWidth}
+          onAddCover={() => setCover(0)}
+          onComment={() => setCommentsOpen(true)}
+        />
+      )}
+
       {/* Content column — font / small-text applied here, cascading to the page */}
       <div className={"flex flex-1 flex-col " + (smallText ? "text-[15px]" : "")} style={{ fontFamily }}>
         {kind === "database" ? (
@@ -187,6 +227,251 @@ export function DocumentView({
         )}
       </div>
     </main>
+    {showPageChrome && commentsOpen && (
+      <CommentsPanel title={title} onClose={() => setCommentsOpen(false)} />
+    )}
+    {infoOpen && (
+      <PageInfoPopover title={title} anchorRef={infoRef} onClose={() => setInfoOpen(false)} />
+    )}
+    </div>
+  );
+}
+
+function PageInfoPopover({
+  title,
+  anchorRef,
+  onClose,
+}: {
+  title: string;
+  anchorRef: React.RefObject<HTMLButtonElement | null>;
+  onClose: () => void;
+}) {
+  const rect = anchorRef.current?.getBoundingClientRect();
+  const width = 280;
+  const left = rect ? Math.max(8, Math.min(rect.right - width, window.innerWidth - width - 8)) : 0;
+  const top = rect ? rect.bottom + 6 : 0;
+
+  const backlinks = [
+    { title: "Getting Started", icon: <FileText className="h-4 w-4 text-[#91918E]" strokeWidth={1.8} /> },
+    { title: "Welcome to Notion", icon: <span className="text-[13px] leading-none">👋</span> },
+    { title: "To Do List", icon: <ListChecks className="h-4 w-4 text-[#448361]" strokeWidth={2} /> },
+  ].filter((b) => b.title !== title).slice(0, 2);
+
+  return (
+    <>
+      <div className="fixed inset-0 z-[95]" onClick={onClose} />
+      <div
+        className="fixed z-[96] w-[280px] rounded-xl border border-black/[0.08] bg-white p-3 text-[#37352F] shadow-[0_8px_28px_rgba(0,0,0,0.16)]"
+        style={{ left, top }}
+      >
+        <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-[#9B9A97]">Page info</div>
+        <InfoRow label="Word count">124</InfoRow>
+        <InfoRow label="Created by">
+          <span className="flex items-center gap-1.5">
+            <InfoAvatar name="Alex Morgan" /> Alex Morgan
+          </span>
+        </InfoRow>
+        <InfoRow label="Created">Jul 11, 2026 4:07 PM</InfoRow>
+        <InfoRow label="Last edited by">
+          <span className="flex items-center gap-1.5">
+            <InfoAvatar name="Alex Morgan" /> Alex Morgan
+          </span>
+        </InfoRow>
+        <InfoRow label="Last edited">Just now</InfoRow>
+
+        <div className="my-2 border-t border-black/[0.06]" />
+
+        <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-[#9B9A97]">Backlinks</div>
+        {backlinks.length === 0 ? (
+          <div className="px-1 py-1.5 text-[13px] text-[#9B9A97]">No backlinks yet</div>
+        ) : (
+          <div className="flex flex-col">
+            {backlinks.map((b) => (
+              <button
+                key={b.title}
+                onClick={() => {
+                  toast(`Opened ${b.title}`);
+                  onClose();
+                }}
+                className="flex items-center gap-2 rounded-md px-1.5 py-1.5 text-left text-[14px] text-[#37352F] transition-colors hover:bg-black/[0.05]"
+              >
+                <span className="flex h-4 w-4 shrink-0 items-center justify-center">{b.icon}</span>
+                <span className="min-w-0 truncate">{b.title}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+function InfoRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-3 py-1 text-[14px]">
+      <span className="shrink-0 text-[#9B9A97]">{label}</span>
+      <span className="min-w-0 truncate text-[#37352F]">{children}</span>
+    </div>
+  );
+}
+
+function InfoAvatar({ name }: { name: string }) {
+  return (
+    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#E28026] text-[9px] font-semibold text-white">
+      {name[0]}
+    </span>
+  );
+}
+
+const COVER_GRADIENTS = [
+  "bg-gradient-to-r from-[#F6D365] to-[#FDA085]",
+  "bg-gradient-to-r from-[#A1C4FD] to-[#C2E9FB]",
+  "bg-gradient-to-r from-[#D4FC79] to-[#96E6A1]",
+  "bg-gradient-to-r from-[#FBC2EB] to-[#A6C1EE]",
+  "bg-gradient-to-r from-[#84FAB0] to-[#8FD3F4]",
+  "bg-gradient-to-br from-[#30435B] to-[#4CA1AF]",
+];
+
+function CoverBanner({ cover, onChange, onRemove }: { cover: number; onChange: () => void; onRemove: () => void }) {
+  return (
+    <div className={"group/cover relative h-[200px] w-full shrink-0 " + COVER_GRADIENTS[cover]}>
+      <div className="absolute bottom-3 right-6 hidden items-center gap-1.5 group-hover/cover:flex">
+        <button
+          onClick={onChange}
+          className="flex h-7 items-center gap-1.5 rounded-md bg-white/85 px-2.5 text-[13px] font-medium text-[#37352F] shadow-[0_1px_3px_rgba(0,0,0,0.15)] backdrop-blur hover:bg-white"
+        >
+          <ImageIcon className="h-3.5 w-3.5" strokeWidth={1.9} />
+          Change cover
+        </button>
+        <button
+          onClick={onRemove}
+          className="flex h-7 items-center rounded-md bg-white/85 px-2.5 text-[13px] font-medium text-[#37352F] shadow-[0_1px_3px_rgba(0,0,0,0.15)] backdrop-blur hover:bg-white"
+        >
+          Remove
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function PageChromeToolbar({
+  hasCover,
+  fullWidth,
+  onAddCover,
+  onComment,
+}: {
+  hasCover: boolean;
+  fullWidth?: boolean;
+  onAddCover: () => void;
+  onComment: () => void;
+}) {
+  return (
+    <div className={"mx-auto w-full px-16 " + (fullWidth ? "max-w-full" : "max-w-[900px]")}>
+      <div className="flex items-center gap-1 pt-3 opacity-0 transition-opacity group-hover:opacity-100">
+        {!hasCover && (
+          <ChromeBtn icon={<ImageIcon className="h-4 w-4" strokeWidth={1.8} />} label="Add cover" onClick={onAddCover} />
+        )}
+        <ChromeBtn icon={<Smile className="h-4 w-4" strokeWidth={1.8} />} label="Add icon" onClick={() => toast("Add icon")} />
+        <ChromeBtn icon={<MessageSquare className="h-4 w-4" strokeWidth={1.8} />} label="Add comment" onClick={onComment} />
+      </div>
+    </div>
+  );
+}
+
+function ChromeBtn({ icon, label, onClick }: { icon: React.ReactNode; label: string; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex h-7 items-center gap-1.5 rounded-md px-2 text-[14px] font-medium text-[#9B9A97] transition-colors hover:bg-black/[0.04] hover:text-[#5F5E59]"
+    >
+      {icon}
+      {label}
+    </button>
+  );
+}
+
+type Comment = { id: number; author: string; text: string; time: string };
+
+function CommentsPanel({ title, onClose }: { title: string; onClose: () => void }) {
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [text, setText] = useState("");
+
+  const add = () => {
+    if (!text.trim()) return;
+    setComments((c) => [...c, { id: c.length + 1, author: "Alex Morgan", text: text.trim(), time: "Just now" }]);
+    setText("");
+  };
+
+  return (
+    <aside className="flex h-dvh w-[300px] shrink-0 flex-col border-l border-black/[0.08] bg-[#FBFAF9]">
+      <div className="flex h-11 items-center justify-between border-b border-black/[0.06] px-4">
+        <h2 className="text-[14px] font-semibold text-[#2C2C2B]">Comments</h2>
+        <button
+          onClick={onClose}
+          aria-label="Close comments"
+          className="flex h-6 w-6 items-center justify-center rounded-full bg-black/[0.04] text-[#5F5E59] hover:bg-black/[0.08]"
+        >
+          <X className="h-3.5 w-3.5" strokeWidth={2} />
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-3 py-3">
+        {comments.length === 0 ? (
+          <div className="flex flex-col items-center pt-16 text-center">
+            <MessageSquare className="h-7 w-7 text-[#C6C4C0]" strokeWidth={1.5} />
+            <div className="mt-3 max-w-[220px] text-[13px] text-[#7D7A75]">
+              Add a comment to start a discussion on “{title}”.
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4">
+            {comments.map((c) => (
+              <div key={c.id} className="flex gap-2">
+                <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#E28026] text-[11px] font-semibold text-white">
+                  {c.author[0]}
+                </span>
+                <div className="min-w-0">
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-[13px] font-semibold text-[#2C2C2B]">{c.author}</span>
+                    <span className="text-[11px] text-[#9B9A97]">{c.time}</span>
+                  </div>
+                  <div className="text-[14px] leading-5 text-[#37352F]">{c.text}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="border-t border-black/[0.06] p-2.5">
+        <div className="flex items-end gap-1.5 rounded-lg border border-black/[0.1] bg-white px-2 py-1.5 focus-within:border-[#2383E2]">
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                add();
+              }
+            }}
+            rows={1}
+            placeholder="Add a comment…"
+            className="max-h-24 min-h-6 flex-1 resize-none bg-transparent text-[14px] text-[#2C2C2B] outline-none placeholder:text-[#9B9A97]"
+          />
+          <button
+            onClick={add}
+            disabled={!text.trim()}
+            aria-label="Send comment"
+            className={
+              "flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition-colors " +
+              (text.trim() ? "bg-[#2383E2] text-white hover:bg-[#1a73d0]" : "bg-black/[0.06] text-[#B4B1AB]")
+            }
+          >
+            <Plus className="h-4 w-4" strokeWidth={2.5} />
+          </button>
+        </div>
+      </div>
+    </aside>
   );
 }
 
@@ -299,7 +584,8 @@ function MovePageMenu({ close }: { close: () => void }) {
   const toggle = (id: string) =>
     setExpanded((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
 
@@ -692,11 +978,14 @@ function ActionsMenu({
   );
 }
 
-function TopIcon({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) {
+function TopIcon({ children, onClick, active }: { children: React.ReactNode; onClick?: () => void; active?: boolean }) {
   return (
     <button
       onClick={onClick}
-      className="flex h-7 w-7 items-center justify-center rounded-md text-[#5F5E59] transition-colors hover:bg-black/[0.04]"
+      className={
+        "flex h-7 w-7 items-center justify-center rounded-md text-[#5F5E59] transition-colors hover:bg-black/[0.04] " +
+        (active ? "bg-black/[0.06]" : "")
+      }
     >
       {children}
     </button>

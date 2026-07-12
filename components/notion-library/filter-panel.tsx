@@ -23,6 +23,12 @@ export type FilterRule =
       }[];
     };
 
+export type SimpleFilterRule = Extract<FilterRule, { type: "simple" }>;
+export type AdvancedFilterRule = Extract<FilterRule, { type: "advanced" }>;
+export type NestedFilterRule = AdvancedFilterRule["rules"][number];
+export type FilterField = SimpleFilterRule["field"];
+export type FilterOperator = SimpleFilterRule["operator"];
+
 export const FILTER_FIELDS = [
   { value: "title", label: "Page name", icon: FileText },
   { value: "source", label: "Source", icon: Globe },
@@ -100,8 +106,11 @@ export function FilterPanel({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/30 animate-fade-in">
-      <div className="fixed bottom-0 right-0 top-0 w-[380px] flex flex-col bg-white border-l border-black/[0.08] shadow-[0_0_24px_rgba(0,0,0,0.12)]">
+    <div className="fixed inset-0 z-50" onClick={onClose}>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="fixed bottom-0 right-0 top-0 w-[380px] flex flex-col bg-white border-l border-black/[0.08] shadow-[0_0_24px_rgba(0,0,0,0.12)] animate-in slide-in-from-right-4 duration-200"
+      >
         
         {/* Header */}
         <div className="flex h-[52px] items-center justify-between border-b border-black/[0.06] px-4">
@@ -251,11 +260,11 @@ function FilterRuleItem({
   onRemove,
   onConvertToAdvanced,
 }: {
-  rule: any;
+  rule: SimpleFilterRule;
   isExpanded: boolean;
   onToggleExpand: () => void;
-  onUpdateField: (field: any) => void;
-  onUpdateOperator: (operator: any) => void;
+  onUpdateField: (field: FilterField) => void;
+  onUpdateOperator: (operator: FilterOperator) => void;
   onUpdateValue: (value: string) => void;
   onRemove: () => void;
   onConvertToAdvanced: () => void;
@@ -304,7 +313,7 @@ function FilterRuleItem({
                   <button
                     key={f.value}
                     onClick={() => {
-                      onUpdateField(f.value);
+                      onUpdateField(f.value as FilterField);
                       setFieldMenuOpen(false);
                     }}
                     className="flex w-full items-center gap-2 rounded px-2.5 py-1.5 text-left text-[14px] text-[#37352F] hover:bg-black/[0.05]"
@@ -346,7 +355,7 @@ function FilterRuleItem({
                       <button
                         key={op.value}
                         onClick={() => {
-                          onUpdateOperator(op.value);
+                          onUpdateOperator(op.value as FilterOperator);
                           setOpMenuOpen(false);
                         }}
                         className="flex w-full items-center gap-2 rounded px-2.5 py-1.5 text-left text-[13px] text-[#37352F] hover:bg-black/[0.05]"
@@ -437,26 +446,26 @@ function AdvancedFilterItem({
   onUpdateRule,
   onRemove,
 }: {
-  rule: any;
+  rule: AdvancedFilterRule;
   isCardOpen: boolean;
   onToggleCard: () => void;
   onCloseCard: () => void;
-  onUpdateRule: (updatedRules: any[]) => void;
+  onUpdateRule: (updatedRules: NestedFilterRule[]) => void;
   onRemove: () => void;
 }) {
   // Select active field/operator lists for dropdowns
   const [activeDropdownIndex, setActiveDropdownIndex] = useState<{ type: "field" | "operator" | "nested-opts"; index: number } | null>(null);
 
   // Check if any rules in group contain search values (dirty)
-  const isDirty = rule.rules.some((r: any) => r.value.length > 0);
+  const isDirty = rule.rules.some((r) => r.value.length > 0);
 
-  const handleUpdateNestedRule = (nestedId: string, fieldName: string, val: any) => {
-    const updated = rule.rules.map((r: any) => {
+  const handleUpdateNestedRule = (nestedId: string, fieldName: keyof NestedFilterRule, val: string) => {
+    const updated = rule.rules.map((r) => {
       if (r.id === nestedId) {
         return { ...r, [fieldName]: val };
       }
       return r;
-    });
+    }) as NestedFilterRule[];
     onUpdateRule(updated);
   };
 
@@ -471,7 +480,7 @@ function AdvancedFilterItem({
   };
 
   const handleRemoveNestedRule = (nestedId: string) => {
-    const updated = rule.rules.filter((r: any) => r.id !== nestedId);
+    const updated = rule.rules.filter((r) => r.id !== nestedId);
     if (updated.length === 0) {
       onRemove();
     } else {
@@ -512,7 +521,7 @@ function AdvancedFilterItem({
             
             {/* Rules list in group */}
             <div className="space-y-2">
-              {rule.rules.map((nested: any, idx: number) => {
+              {rule.rules.map((nested, idx) => {
                 const activeFld = FILTER_FIELDS.find(f => f.value === nested.field) || FILTER_FIELDS[0];
                 const FldIcon = activeFld.icon;
                 const activeOpr = OPERATORS.find(op => op.value === nested.operator) || OPERATORS[0];

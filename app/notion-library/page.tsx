@@ -7,9 +7,9 @@ import { MainPanel } from "@/components/notion-library/main-panel";
 import { DocumentView } from "@/components/notion-library/document-view";
 import { ChatView } from "@/components/notion-library/chat-view";
 import { HomeView } from "@/components/notion-library/home-view";
+import { MeetingsView, InboxView } from "@/components/notion-library/inbox-meetings-views";
 import { SearchDialog } from "@/components/notion-library/search-dialog";
 import { AiChatPanel } from "@/components/notion-library/ai-chat-panel";
-import { NotionAiMark } from "@/components/notion-library/icons";
 import { PanelLeft } from "lucide-react";
 
 function FaceIcon({ className = "h-5 w-5" }: { className?: string }) {
@@ -44,6 +44,7 @@ export default function NotionLibraryPage() {
   const [nav, setNav] = useState<NavKey>("library");
   const [doc, setDoc] = useState<OpenDoc | null>(null);
   const [chat, setChat] = useState(false);
+  const [special, setSpecial] = useState<"meetings" | "inbox" | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -73,6 +74,7 @@ export default function NotionLibraryPage() {
     setNav(key);
     setDoc(null); // leaving to a nav destination closes any open doc
     setChat(false);
+    setSpecial(null);
     if (key === "library") setLibraryTab("favorites");
     if (key !== "library" && key !== "home") toast(`Opened ${label}`);
   }
@@ -81,17 +83,32 @@ export default function NotionLibraryPage() {
     setNav("library");
     setDoc(null);
     setChat(false);
+    setSpecial(null);
     setLibraryTab(tab);
   }
 
   function handleOpenDoc(d: OpenDoc) {
     setDoc(d);
     setChat(false);
+    setSpecial(null);
   }
 
   function handleOpenChat() {
     setChat(true);
     setDoc(null);
+    setSpecial(null);
+  }
+
+  function handleOpenMeetings() {
+    setSpecial("meetings");
+    setDoc(null);
+    setChat(false);
+  }
+
+  function handleOpenInbox() {
+    setSpecial("inbox");
+    setDoc(null);
+    setChat(false);
   }
 
   const placeholder = PLACEHOLDER[nav];
@@ -99,6 +116,10 @@ export default function NotionLibraryPage() {
   let main: React.ReactNode;
   if (chat) {
     main = <ChatView />;
+  } else if (special === "meetings") {
+    main = <MeetingsView onOpenDoc={handleOpenDoc} />;
+  } else if (special === "inbox") {
+    main = <InboxView onOpenDoc={handleOpenDoc} />;
   } else if (doc) {
     main = (
       <DocumentView
@@ -134,6 +155,8 @@ export default function NotionLibraryPage() {
         onOpenDoc={handleOpenDoc}
         activeDoc={doc?.title ?? null}
         onOpenChat={handleOpenChat}
+        onOpenMeetings={handleOpenMeetings}
+        onOpenInbox={handleOpenInbox}
         onOpenSearch={() => setSearchOpen(true)}
         onOpenLibraryTab={handleOpenLibraryTab}
         favorites={favorites}

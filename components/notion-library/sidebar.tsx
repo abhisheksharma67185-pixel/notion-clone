@@ -98,6 +98,8 @@ export function Sidebar({
   onOpenDoc,
   activeDoc,
   onOpenChat,
+  onOpenMeetings,
+  onOpenInbox,
   onOpenSearch,
   onOpenLibraryTab,
   favorites,
@@ -110,6 +112,8 @@ export function Sidebar({
   onOpenDoc: (doc: { title: string; kind: "meeting" | "page" | "database"; heading?: string }) => void;
   activeDoc: string | null;
   onOpenChat: () => void;
+  onOpenMeetings?: () => void;
+  onOpenInbox?: () => void;
   onOpenSearch: () => void;
   onOpenLibraryTab?: (tab: "recents" | "favorites" | "shared" | "private" | "notes") => void;
   favorites: Set<string>;
@@ -253,13 +257,13 @@ export function Sidebar({
         <TopTab
           label="Meetings"
           active={tab === "meetings"}
-          onClick={() => setTab("meetings")}
+          onClick={() => { setTab("meetings"); onOpenMeetings?.(); }}
           icon={<PaperMicrophoneIcon className="h-[18px] w-[18px]" />}
         />
         <TopTab
           label="Inbox"
           active={tab === "inbox"}
-          onClick={() => setTab("inbox")}
+          onClick={() => { setTab("inbox"); onOpenInbox?.(); }}
           icon={<Inbox className="h-[18px] w-[18px]" strokeWidth={1.9} />}
         />
         <button

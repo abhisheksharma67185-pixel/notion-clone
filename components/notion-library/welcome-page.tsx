@@ -23,7 +23,7 @@ const codeRed = (s: string): Seg => ({ codeRed: s });
 const link = (s: string, href = "#"): Seg => ({ link: s, href });
 const emoji = (s: string): Seg => ({ emoji: s });
 
-function RichText({ segs, struck }: { segs: Seg[]; struck?: boolean }) {
+function RichText({ segs }: { segs: Seg[] }) {
   return (
     <>
       {segs.map((s, i) => {
@@ -224,7 +224,8 @@ export function WelcomePage({ fullWidth }: { fullWidth?: boolean }) {
   const onToggle = (id: string) =>
     setCheckedIds((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
 

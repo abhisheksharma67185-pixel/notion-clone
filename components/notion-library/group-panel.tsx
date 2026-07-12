@@ -113,7 +113,7 @@ export function GroupPanel({
   };
 
   const renderHeader = (title: string, onBack: () => void) => (
-    <div className="flex h-[52px] items-center justify-between border-b border-black/[0.06] px-4">
+    <div className="flex h-[42px] items-center justify-between border-b border-black/[0.06] px-3">
       <button
         onClick={onBack}
         className="flex h-6 w-6 items-center justify-center rounded text-[#5F5E59] hover:bg-black/[0.05] transition-colors"
@@ -134,8 +134,8 @@ export function GroupPanel({
 
   if (view === "select-property") {
     return (
-      <div className="fixed inset-0 z-50 bg-black/30 animate-fade-in">
-        <div className="fixed bottom-0 right-0 top-0 w-[380px] flex flex-col bg-white border-l border-black/[0.08] shadow-[0_0_24px_rgba(0,0,0,0.12)]">
+      <div className="fixed inset-0 z-50" onClick={onClose}>
+        <div onClick={(e) => e.stopPropagation()} className="fixed bottom-0 right-0 top-0 w-[290px] flex flex-col bg-white border-l border-black/[0.08] shadow-[0_0_24px_rgba(0,0,0,0.12)] animate-in slide-in-from-right-4 duration-200">
           {renderHeader("Group by", () => {
             if (selectedGroup !== "none") setView("main");
             else onClose();
@@ -167,7 +167,7 @@ export function GroupPanel({
                     setView("main");
                   }
                 }}
-                className={`flex h-9 w-full items-center gap-2.5 rounded-md px-3 text-left text-[14px] transition-colors ${
+                className={`flex h-8 w-full items-center gap-2.5 rounded-md px-3 text-left text-[14px] transition-colors ${
                   selectedGroup === option.id
                     ? "bg-black/[0.06] text-[#2C2C2B]"
                     : "text-[#37352F] hover:bg-black/[0.03]"
@@ -196,8 +196,8 @@ export function GroupPanel({
 
   if (view === "date-by") {
     return (
-      <div className="fixed inset-0 z-50 bg-black/30 animate-fade-in">
-        <div className="fixed bottom-0 right-0 top-0 w-[380px] flex flex-col bg-white border-l border-black/[0.08] shadow-[0_0_24px_rgba(0,0,0,0.12)]">
+      <div className="fixed inset-0 z-50" onClick={onClose}>
+        <div onClick={(e) => e.stopPropagation()} className="fixed bottom-0 right-0 top-0 w-[290px] flex flex-col bg-white border-l border-black/[0.08] shadow-[0_0_24px_rgba(0,0,0,0.12)] animate-in slide-in-from-right-4 duration-200">
           {renderHeader("Date by", () => setView("main"))}
           <div className="flex-1 overflow-y-auto px-1 py-1">
             {DATE_BY_OPTIONS.map((opt) => (
@@ -207,7 +207,7 @@ export function GroupPanel({
                   onDateByChange(opt.id);
                   setView("main");
                 }}
-                className={`flex h-9 w-full items-center justify-between rounded-md px-3 text-left text-[14px] transition-colors ${
+                className={`flex h-8 w-full items-center justify-between rounded-md px-3 text-left text-[14px] transition-colors ${
                   dateBy === opt.id
                     ? "bg-black/[0.06] text-[#2C2C2B]"
                     : "text-[#37352F] hover:bg-black/[0.03]"
@@ -230,8 +230,8 @@ export function GroupPanel({
   if (view === "sort") {
     const sortOpts = isDateField ? SORT_ORDER_OPTIONS.date : SORT_ORDER_OPTIONS.text;
     return (
-      <div className="fixed inset-0 z-50 bg-black/30 animate-fade-in">
-        <div className="fixed bottom-0 right-0 top-0 w-[380px] flex flex-col bg-white border-l border-black/[0.08] shadow-[0_0_24px_rgba(0,0,0,0.12)]">
+      <div className="fixed inset-0 z-50" onClick={onClose}>
+        <div onClick={(e) => e.stopPropagation()} className="fixed bottom-0 right-0 top-0 w-[290px] flex flex-col bg-white border-l border-black/[0.08] shadow-[0_0_24px_rgba(0,0,0,0.12)] animate-in slide-in-from-right-4 duration-200">
           {renderHeader("Sort", () => setView("main"))}
           <div className="flex-1 overflow-y-auto px-1 py-1">
             {sortOpts.map((opt) => (
@@ -241,7 +241,7 @@ export function GroupPanel({
                   onSortOrderChange(opt.id);
                   setView("main");
                 }}
-                className={`flex h-9 w-full items-center justify-between rounded-md px-3 text-left text-[14px] transition-colors ${
+                className={`flex h-8 w-full items-center justify-between rounded-md px-3 text-left text-[14px] transition-colors ${
                   sortOrder === opt.id
                     ? "bg-black/[0.06] text-[#2C2C2B]"
                     : "text-[#37352F] hover:bg-black/[0.03]"
@@ -263,20 +263,20 @@ export function GroupPanel({
 
   // view === "main" (Group settings menu)
   return (
-    <div className="fixed inset-0 z-50 bg-black/30 animate-fade-in">
-      <div className="fixed bottom-0 right-0 top-0 w-[380px] flex flex-col bg-white border-l border-black/[0.08] shadow-[0_0_24px_rgba(0,0,0,0.12)] select-none">
+    <div className="fixed inset-0 z-50" onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} className="fixed bottom-0 right-0 top-0 w-[290px] flex flex-col bg-white border-l border-black/[0.08] shadow-[0_0_24px_rgba(0,0,0,0.12)] select-none animate-in slide-in-from-right-4 duration-200">
         
         {/* Header */}
         {renderHeader("Group", () => setView("select-property"))}
 
         {/* Settings Body */}
-        <div className="flex-1 overflow-y-auto px-4 py-2 space-y-4">
+        <div className="flex-1 overflow-y-auto px-3 py-2 space-y-1">
           <div className="space-y-1">
             
             {/* Group By Row */}
             <button
               onClick={() => setView("select-property")}
-              className="flex w-full items-center justify-between py-2 text-[14px] text-[#37352F] hover:bg-black/[0.03] rounded px-1.5 transition-colors"
+              className="flex w-full items-center justify-between py-1.5 text-[14px] text-[#37352F] hover:bg-black/[0.03] rounded-md px-2 transition-colors"
             >
               <span className="font-medium">Group by</span>
               <span className="text-[#8A8985] font-normal flex items-center gap-1">
@@ -289,7 +289,7 @@ export function GroupPanel({
             {isDateField && (
               <button
                 onClick={() => setView("date-by")}
-                className="flex w-full items-center justify-between py-2 text-[14px] text-[#37352F] hover:bg-black/[0.03] rounded px-1.5 transition-colors"
+                className="flex w-full items-center justify-between py-1.5 text-[14px] text-[#37352F] hover:bg-black/[0.03] rounded-md px-2 transition-colors"
               >
                 <span className="font-medium">Date by</span>
                 <span className="text-[#8A8985] font-normal flex items-center gap-1">
@@ -302,7 +302,7 @@ export function GroupPanel({
             {/* Sort Row */}
             <button
               onClick={() => setView("sort")}
-              className="flex w-full items-center justify-between py-2 text-[14px] text-[#37352F] hover:bg-black/[0.03] rounded px-1.5 transition-colors"
+              className="flex w-full items-center justify-between py-1.5 text-[14px] text-[#37352F] hover:bg-black/[0.03] rounded-md px-2 transition-colors"
             >
               <span className="font-medium">Sort</span>
               <span className="text-[#8A8985] font-normal flex items-center gap-1">
@@ -314,7 +314,7 @@ export function GroupPanel({
             </button>
 
             {/* Hide Empty Switch */}
-            <div className="flex w-full items-center justify-between py-2 text-[14px] text-[#37352F] px-1.5">
+            <div className="flex w-full items-center justify-between py-1.5 text-[14px] text-[#37352F] px-1.5">
               <span className="font-medium">Hide empty groups</span>
               <button
                 onClick={() => onHideEmptyChange(!hideEmpty)}
@@ -334,9 +334,9 @@ export function GroupPanel({
           <div className="h-[1px] bg-black/[0.06]" />
 
           {/* Groups List Section */}
-          <div className="space-y-2">
+          <div className="space-y-1">
             <div className="flex items-center justify-between px-1.5">
-              <span className="text-[12px] font-semibold text-[#8A8985] uppercase tracking-wider">Groups</span>
+              <span className="text-[12px] font-semibold text-[#8A8985] ">Groups</span>
               {hiddenGroups.length === activeGroups.length ? (
                 <button onClick={handleShowAll} className="text-[12px] font-medium text-[#2383E2] hover:underline">
                   Show all
@@ -354,7 +354,7 @@ export function GroupPanel({
                 return (
                   <div
                     key={group}
-                    className="flex h-9 w-full items-center gap-2 rounded-md px-1.5 text-[14px] text-[#37352F] hover:bg-black/[0.02]"
+                    className="flex h-8 w-full items-center gap-2 rounded-md px-1.5 text-[14px] text-[#37352F] hover:bg-black/[0.02]"
                   >
                     {/* Drag Handle */}
                     {!isDateField && (
@@ -406,7 +406,7 @@ export function GroupPanel({
                 onGroupChange("none");
                 onClose();
               }}
-              className="flex h-9 w-full items-center gap-2.5 rounded-md px-2 text-left text-[14px] text-[#37352F] hover:bg-black/[0.04] active:bg-black/[0.08] transition-colors"
+              className="flex h-8 w-full items-center gap-2.5 rounded-md px-2 text-left text-[14px] text-[#37352F] hover:bg-black/[0.04] active:bg-black/[0.08] transition-colors"
             >
               <Trash2 className="h-4 w-4 text-[#5F5E59]" strokeWidth={1.8} />
               <span className="font-medium">Remove grouping</span>
@@ -416,7 +416,7 @@ export function GroupPanel({
               onClick={() => {
                 window.open("https://www.notion.so/help/relations-and-rollups", "_blank");
               }}
-              className="flex h-9 w-full items-center gap-2.5 rounded-md px-2 text-left text-[14px] text-[#37352F] hover:bg-black/[0.04] active:bg-black/[0.08] transition-colors"
+              className="flex h-8 w-full items-center gap-2.5 rounded-md px-2 text-left text-[14px] text-[#37352F] hover:bg-black/[0.04] active:bg-black/[0.08] transition-colors"
             >
               <HelpCircle className="h-4 w-4 text-[#5F5E59]" strokeWidth={1.8} />
               <span className="font-medium">Learn about grouping</span>

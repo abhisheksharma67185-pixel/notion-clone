@@ -48,6 +48,19 @@ const EMPTY_COPY: Record<TabKey, { title: string; sub: string }> = {
   notes: { title: "", sub: "" },
 };
 
+type PageStatus = "Not started" | "In progress" | "Done";
+
+type LayoutKind = "table" | "list" | "gallery" | "board" | "calendar" | "timeline" | "chart";
+
+const BOARD_STATUSES: PageStatus[] = ["Not started", "In progress", "Done"];
+
+// Light status tints reused by Board / Calendar / Timeline.
+const STATUS_STYLE: Record<PageStatus, { chip: string; dot: string; bar: string }> = {
+  "Not started": { chip: "bg-[rgba(28,19,1,0.11)] text-[#494846]", dot: "bg-[#8A8985]", bar: "bg-[#C7C5C0]" },
+  "In progress": { chip: "bg-[rgba(0,118,217,0.20)] text-[#264A72]", dot: "bg-[#3B82D0]", bar: "bg-[#5A9BD8]" },
+  Done: { chip: "bg-[rgba(0,96,38,0.157)] text-[#2A533C]", dot: "bg-[#3C8A5F]", bar: "bg-[#5FA97C]" },
+};
+
 type PageRow = {
   id: string;
   icon: React.ReactNode;
@@ -56,16 +69,19 @@ type PageRow = {
   source: string;
   lastEdited: string;
   lastVisited: string;
+  status: PageStatus;
+  day: number; // day-of-month used by Calendar / Timeline
+  span?: number; // number of days the timeline bar spans (default 3)
   expandable?: boolean;
 };
 
 const ROWS: PageRow[] = [
-  { id: "new-page-1", icon: <FileText className="h-[18px] w-[18px] text-[#91918E]" strokeWidth={1.7} />, title: "New page", createdBy: "Abhishek Sharma", source: "Private", lastEdited: "3h ago", lastVisited: "3h ago" },
-  { id: "new-page-2", icon: <FileText className="h-[18px] w-[18px] text-[#91918E]" strokeWidth={1.7} />, title: "New page", createdBy: "Abhishek Sharma", source: "Private", lastEdited: "3h ago", lastVisited: "3h ago" },
-  { id: "yesterday-page", icon: <FileText className="h-[18px] w-[18px] text-[#91918E]" strokeWidth={1.7} />, title: "@Yesterday 4:07 AM", createdBy: "Abhishek Sharma", source: "Private", lastEdited: "20h ago", lastVisited: "20h ago" },
-  { id: "new-page-3", icon: <FileText className="h-[18px] w-[18px] text-[#91918E]" strokeWidth={1.7} />, title: "New page", createdBy: "Abhishek Sharma", source: "Private", lastEdited: "23h ago", lastVisited: "23h ago" },
-  { id: "welcome", icon: <span className="text-[15px] leading-none">👋</span>, title: "Welcome to Notion", createdBy: "Alex Morgan", source: "Private", lastEdited: "1d ago", lastVisited: "1d ago" },
-  { id: "todo", icon: <span className="text-[15px] leading-none">✅</span>, title: "To Do List", createdBy: "Alex Morgan", source: "Private", lastEdited: "1d ago", lastVisited: "1d ago", expandable: true },
+  { id: "new-page-1", icon: <FileText className="h-[18px] w-[18px] text-[#91918E]" strokeWidth={1.7} />, title: "New page", createdBy: "Abhishek Sharma", source: "Private", lastEdited: "3h ago", lastVisited: "3h ago", status: "Not started", day: 4, span: 3 },
+  { id: "new-page-2", icon: <FileText className="h-[18px] w-[18px] text-[#91918E]" strokeWidth={1.7} />, title: "New page", createdBy: "Abhishek Sharma", source: "Private", lastEdited: "3h ago", lastVisited: "3h ago", status: "In progress", day: 9, span: 4 },
+  { id: "yesterday-page", icon: <FileText className="h-[18px] w-[18px] text-[#91918E]" strokeWidth={1.7} />, title: "@Yesterday 4:07 AM", createdBy: "Abhishek Sharma", source: "Private", lastEdited: "20h ago", lastVisited: "20h ago", status: "In progress", day: 12, span: 2 },
+  { id: "new-page-3", icon: <FileText className="h-[18px] w-[18px] text-[#91918E]" strokeWidth={1.7} />, title: "New page", createdBy: "Abhishek Sharma", source: "Private", lastEdited: "23h ago", lastVisited: "23h ago", status: "Not started", day: 16, span: 3 },
+  { id: "welcome", icon: <span className="text-[15px] leading-none">👋</span>, title: "Welcome to Notion", createdBy: "Alex Morgan", source: "Private", lastEdited: "1d ago", lastVisited: "1d ago", status: "Done", day: 21, span: 5 },
+  { id: "todo", icon: <span className="text-[15px] leading-none">✅</span>, title: "To Do List", createdBy: "Alex Morgan", source: "Private", lastEdited: "1d ago", lastVisited: "1d ago", status: "Done", day: 25, span: 3, expandable: true },
 ];
 
 const TAB_ROWS: Record<TabKey, PageRow[]> = {
@@ -80,6 +96,7 @@ const COL = { by: "w-[200px]", src: "w-[200px]", edited: "w-[200px]", visited: "
 
 export function MainPanel({ initialTab = "favorites" }: { initialTab?: TabKey }) {
   const [active, setActive] = useState<TabKey>(initialTab);
+  const [layout, setLayout] = useState<LayoutKind>("table");
   const [search, setSearch] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [sortPanelOpen, setSortPanelOpen] = useState(false);
@@ -240,14 +257,6 @@ export function MainPanel({ initialTab = "favorites" }: { initialTab?: TabKey })
     });
   }
 
-  const toggleSort = () => {
-    setSortDirection((direction) => {
-      const next = direction === "asc" ? "desc" : "asc";
-      toast(next === "asc" ? "Sorted A to Z" : "Sorted Z to A");
-      return next;
-    });
-  };
-
   return (
     <main className="flex h-dvh flex-1 flex-col overflow-y-auto bg-white text-[#2C2C2B]">
       <div className="w-full px-24 pt-[52px]">
@@ -347,7 +356,7 @@ export function MainPanel({ initialTab = "favorites" }: { initialTab?: TabKey })
 
             <Dropdown
               align="right"
-              width={220}
+              width={290}
               trigger={(open, toggle) => (
                 <ToolbarBtn active={open} onClick={toggle} label="Settings">
                   <NotionSettingsIcon className="h-4 w-4" />
@@ -357,8 +366,13 @@ export function MainPanel({ initialTab = "favorites" }: { initialTab?: TabKey })
               {(close) => (
                 <CollectionSettingsMenu
                   sortLabel={sortDirection === "asc" ? "Title A to Z" : "Title Z to A"}
+                  layout={layout}
+                  onLayout={(next) => {
+                    setLayout(next);
+                    close();
+                  }}
                   onSort={() => {
-                    toggleSort();
+                    setSortPanelOpen(true);
                     close();
                   }}
                   onGroup={() => {
@@ -501,12 +515,12 @@ export function MainPanel({ initialTab = "favorites" }: { initialTab?: TabKey })
             {filterRules.map((rule) => {
               const isSimple = rule.type === "simple";
               const simpleRule = isSimple ? rule : null;
-              const isDirty = rule.type === "simple" 
-                ? rule.value.length > 0 
-                : (rule as any).rules.some((r: any) => r.value.length > 0);
-              const label = isSimple && simpleRule
-                ? (FILTER_FIELDS.find((f) => f.value === simpleRule.field)?.label || "Filter")
-                : `${(rule as any).rules.length} ${(rule as any).rules.length === 1 ? "rule" : "rules"}`;
+              const isDirty = rule.type === "simple"
+                ? rule.value.length > 0
+                : rule.rules.some((r) => r.value.length > 0);
+              const label = rule.type === "simple"
+                ? (FILTER_FIELDS.find((f) => f.value === rule.field)?.label || "Filter")
+                : `${rule.rules.length} ${rule.rules.length === 1 ? "rule" : "rules"}`;
               
               const isPopoverOpen = openFilterPopoverId === rule.id;
 
@@ -694,6 +708,27 @@ export function MainPanel({ initialTab = "favorites" }: { initialTab?: TabKey })
             </button>
           </div>
         ) : rows.length > 0 ? (
+          layout === "list" ? (
+            <div className="mt-2 pb-16">
+              {rows.map((r) => (
+                <ListRow key={r.id} row={r} />
+              ))}
+            </div>
+          ) : layout === "gallery" ? (
+            <div className="mt-3 grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-4 pb-16">
+              {rows.map((r) => (
+                <GalleryCard key={r.id} row={r} />
+              ))}
+            </div>
+          ) : layout === "calendar" ? (
+            <CalendarView rows={rows} />
+          ) : layout === "timeline" ? (
+            <TimelineView rows={rows} />
+          ) : layout === "chart" ? (
+            <ChartView rows={rows} />
+          ) : layout === "board" ? (
+            <BoardView rows={rows} />
+          ) : (
           <div className="mt-2 overflow-x-auto">
             <div className="min-w-[1180px]">
               {selectedGroup === "none" && <TableHeader />}
@@ -749,6 +784,7 @@ export function MainPanel({ initialTab = "favorites" }: { initialTab?: TabKey })
               </div>
             </div>
           </div>
+          )
         ) : (
           <>
             <div className="mt-2 overflow-x-auto">
@@ -773,7 +809,7 @@ export function MainPanel({ initialTab = "favorites" }: { initialTab?: TabKey })
           onRemoveFilter={(id) => setFilterRules((prev) => prev.filter((r) => r.id !== id))}
           onUpdateFilter={(id, updates) =>
             setFilterRules((prev) =>
-              prev.map((r) => (r.id === id ? ({ ...r, ...updates } as any) : r))
+              prev.map((r) => (r.id === id ? ({ ...r, ...updates } as FilterRule) : r))
             )
           }
           onResetFilters={() => setFilterRules([])}
@@ -899,6 +935,424 @@ function Row({ row }: { row: PageRow }) {
   );
 }
 
+// List layout: compact full-width rows with the visible properties inlined on the right.
+function ListRow({ row }: { row: PageRow }) {
+  return (
+    <div
+      onClick={() => toast(`Opened ${row.title}`)}
+      className="group flex h-[42px] cursor-pointer items-center gap-2 border-b border-black/[0.06] px-1 text-[14px] transition-colors hover:bg-black/[0.024]"
+    >
+      <span className="flex h-[18px] w-[18px] shrink-0 items-center justify-center">{row.icon}</span>
+      <span className="min-w-0 flex-1 truncate font-medium text-[#2C2C2B]">{row.title}</span>
+      <div className="flex shrink-0 items-center gap-4 text-[13px] text-[#7D7A75]">
+        <span className="hidden items-center gap-1.5 sm:flex">
+          <span className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[#E3E2E0] text-[9px] font-medium text-[#5F5E59]">A</span>
+          <span className="truncate">{row.createdBy}</span>
+        </span>
+        <span className="hidden items-center gap-1 md:flex">
+          <Lock className="h-3.5 w-3.5 text-[#91918E]" strokeWidth={1.8} />
+          {row.source}
+        </span>
+        <span className="w-[64px] text-right">{row.lastEdited}</span>
+      </div>
+    </div>
+  );
+}
+
+// Gallery layout: cards in a responsive grid with a cover area, title and properties.
+function GalleryCard({ row }: { row: PageRow }) {
+  return (
+    <button
+      onClick={() => toast(`Opened ${row.title}`)}
+      className="group flex flex-col overflow-hidden rounded-lg border border-black/[0.09] bg-white text-left shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-shadow hover:shadow-[0_2px_8px_rgba(0,0,0,0.10)]"
+    >
+      <div className="flex h-[124px] items-center justify-center border-b border-black/[0.05] bg-[#F5F4F2]">
+        <span className="flex h-8 w-8 items-center justify-center text-[26px] leading-none opacity-90 [&_svg]:h-7 [&_svg]:w-7">
+          {row.icon}
+        </span>
+      </div>
+      <div className="flex flex-col gap-2 p-3">
+        <div className="flex items-center gap-1.5">
+          <span className="flex h-4 w-4 shrink-0 items-center justify-center [&_svg]:h-4 [&_svg]:w-4">{row.icon}</span>
+          <span className="min-w-0 truncate text-[14px] font-medium text-[#2C2C2B]">{row.title}</span>
+        </div>
+        <div className="flex items-center gap-1.5 text-[12px] text-[#7D7A75]">
+          <span className="flex h-[16px] w-[16px] items-center justify-center rounded-full bg-[#E3E2E0] text-[9px] font-medium text-[#5F5E59]">A</span>
+          <span className="truncate">{row.createdBy}</span>
+        </div>
+        <div className="flex items-center gap-1.5 text-[12px] text-[#7D7A75]">
+          <Lock className="h-3.5 w-3.5 text-[#91918E]" strokeWidth={1.8} />
+          <span className="truncate">{row.source}</span>
+          <span className="text-[#B9B8B4]">·</span>
+          <span className="truncate">{row.lastEdited}</span>
+        </div>
+      </div>
+    </button>
+  );
+}
+
+// Board layout: Kanban columns grouped by Status.
+function BoardView({ rows }: { rows: PageRow[] }) {
+  return (
+    <div className="mt-2 overflow-x-auto pb-16">
+      <div className="flex items-start gap-4">
+        {BOARD_STATUSES.map((status) => {
+          const colRows = rows.filter((r) => r.status === status);
+          const style = STATUS_STYLE[status];
+          return (
+            <div key={status} className="flex w-[260px] shrink-0 flex-col">
+              {/* Column header */}
+              <div className="group flex h-9 items-center gap-2 px-1">
+                <span className={`flex h-[22px] items-center gap-1.5 rounded-md px-2 text-[13px] font-medium ${style.chip}`}>
+                  <span className={`h-2 w-2 rounded-full ${style.dot}`} />
+                  {status}
+                </span>
+                <span className="text-[13px] text-[#9B9A97]">{colRows.length}</span>
+                <button
+                  onClick={() => toast(`New page in ${status}`)}
+                  className="ml-auto flex h-6 w-6 items-center justify-center rounded text-[#9B9A97] opacity-0 transition-opacity hover:bg-black/[0.05] group-hover:opacity-100"
+                  aria-label="Add page"
+                >
+                  <Plus className="h-4 w-4" strokeWidth={2} />
+                </button>
+              </div>
+
+              {/* Cards */}
+              <div className="flex flex-col gap-2 pt-1">
+                {colRows.map((r) => (
+                  <BoardCard key={r.id} row={r} />
+                ))}
+                <button
+                  onClick={() => toast(`New page in ${status}`)}
+                  className="flex h-8 items-center gap-1.5 rounded-lg px-2 text-[14px] text-[#9B9A97] transition-colors hover:bg-black/[0.03] hover:text-[#5F5E59]"
+                >
+                  <Plus className="h-4 w-4" strokeWidth={2} />
+                  New
+                </button>
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Add group */}
+        <button
+          onClick={() => toast("Add a group")}
+          className="flex h-9 shrink-0 items-center gap-1.5 rounded-md px-2 text-[14px] text-[#9B9A97] transition-colors hover:bg-black/[0.03] hover:text-[#5F5E59]"
+        >
+          <Plus className="h-4 w-4" strokeWidth={2} />
+          Add group
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function BoardCard({ row }: { row: PageRow }) {
+  return (
+    <button
+      onClick={() => toast(`Opened ${row.title}`)}
+      className="group flex flex-col gap-2 rounded-lg border border-black/[0.08] bg-white p-2.5 text-left shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-shadow hover:shadow-[0_2px_8px_rgba(0,0,0,0.10)]"
+    >
+      <div className="flex items-center gap-1.5">
+        <span className="flex h-[18px] w-[18px] shrink-0 items-center justify-center [&_svg]:h-[18px] [&_svg]:w-[18px]">{row.icon}</span>
+        <span className="min-w-0 truncate text-[14px] font-medium text-[#2C2C2B]">{row.title}</span>
+      </div>
+      <div className="flex items-center gap-1.5 text-[12px] text-[#7D7A75]">
+        <span className="flex h-[16px] w-[16px] items-center justify-center rounded-full bg-[#E3E2E0] text-[9px] font-medium text-[#5F5E59]">A</span>
+        <span className="truncate">{row.createdBy}</span>
+        <span className="text-[#B9B8B4]">·</span>
+        <span className="truncate">{row.lastEdited}</span>
+      </div>
+    </button>
+  );
+}
+
+// Calendar layout: month grid with page chips placed on their day.
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+function CalendarView({ rows }: { rows: PageRow[] }) {
+  const today = new Date();
+  const [view, setView] = useState<{ y: number; m: number }>({ y: today.getFullYear(), m: today.getMonth() });
+
+  const first = new Date(view.y, view.m, 1);
+  const startDow = first.getDay();
+  const daysInMonth = new Date(view.y, view.m + 1, 0).getDate();
+  const isCurrentMonth = view.y === today.getFullYear() && view.m === today.getMonth();
+
+  const cells: (number | null)[] = [];
+  for (let i = 0; i < startDow; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+  while (cells.length % 7 !== 0) cells.push(null);
+
+  const rowsByDay = new Map<number, PageRow[]>();
+  if (isCurrentMonth) {
+    for (const r of rows) {
+      const list = rowsByDay.get(r.day) ?? [];
+      list.push(r);
+      rowsByDay.set(r.day, list);
+    }
+  }
+
+  const monthLabel = first.toLocaleString(undefined, { month: "long", year: "numeric" });
+  const shift = (delta: number) => {
+    const d = new Date(view.y, view.m + delta, 1);
+    setView({ y: d.getFullYear(), m: d.getMonth() });
+  };
+
+  return (
+    <div className="mt-2 pb-16">
+      {/* Month header */}
+      <div className="mb-2 flex items-center gap-2">
+        <span className="text-[15px] font-semibold text-[#2C2C2B]">{monthLabel}</span>
+        <div className="ml-auto flex items-center gap-1">
+          <button onClick={() => shift(-1)} aria-label="Previous month" className="flex h-7 w-7 items-center justify-center rounded-md text-[#5F5E59] hover:bg-black/[0.05]">
+            <ChevronLeft className="h-4 w-4" strokeWidth={2} />
+          </button>
+          <button onClick={() => setView({ y: today.getFullYear(), m: today.getMonth() })} className="h-7 rounded-md px-2.5 text-[13px] font-medium text-[#37352F] hover:bg-black/[0.05]">
+            Today
+          </button>
+          <button onClick={() => shift(1)} aria-label="Next month" className="flex h-7 w-7 items-center justify-center rounded-md text-[#5F5E59] hover:bg-black/[0.05]">
+            <ChevronRight className="h-4 w-4" strokeWidth={2} />
+          </button>
+        </div>
+      </div>
+
+      {/* Weekday header */}
+      <div className="grid grid-cols-7 border-l border-t border-black/[0.08]">
+        {WEEKDAYS.map((d) => (
+          <div key={d} className="border-b border-r border-black/[0.08] bg-[#FBFAF9] px-2 py-1 text-right text-[12px] font-medium text-[#7D7A75]">
+            {d}
+          </div>
+        ))}
+      </div>
+
+      {/* Day cells */}
+      <div className="grid grid-cols-7 border-l border-black/[0.08]">
+        {cells.map((d, i) => {
+          const isToday = isCurrentMonth && d === today.getDate();
+          const dayRows = d ? rowsByDay.get(d) ?? [] : [];
+          return (
+            <div key={i} className="min-h-[112px] border-b border-r border-black/[0.08] p-1">
+              {d && (
+                <>
+                  <div className="mb-1 flex justify-end">
+                    <span className={"flex h-[22px] min-w-[22px] items-center justify-center rounded-full px-1 text-[12px] " + (isToday ? "bg-[#2383E2] font-semibold text-white" : "text-[#5F5E59]")}>
+                      {d}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    {dayRows.map((r) => (
+                      <button
+                        key={r.id}
+                        onClick={() => toast(`Opened ${r.title}`)}
+                        className="flex items-center gap-1.5 rounded-md border border-black/[0.06] bg-white px-1.5 py-1 text-left text-[12px] shadow-[0_1px_1px_rgba(0,0,0,0.03)] hover:bg-black/[0.02]"
+                      >
+                        <span className="flex h-3.5 w-3.5 shrink-0 items-center justify-center [&_svg]:h-3.5 [&_svg]:w-3.5">{r.icon}</span>
+                        <span className="min-w-0 truncate text-[#2C2C2B]">{r.title}</span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// Timeline layout: item rows with status-colored bars positioned by day across a month axis.
+function TimelineView({ rows }: { rows: PageRow[] }) {
+  const today = new Date();
+  const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+  const dayW = 34;
+  const monthLabel = today.toLocaleString(undefined, { month: "long", year: "numeric" });
+  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+
+  return (
+    <div className="mt-2 overflow-x-auto pb-16">
+      <div className="mb-2 text-[15px] font-semibold text-[#2C2C2B]">{monthLabel}</div>
+      <div className="w-max min-w-full overflow-hidden rounded-lg border border-black/[0.08]">
+        {/* Date axis */}
+        <div className="flex border-b border-black/[0.08] bg-[#FBFAF9]">
+          <div className="w-[200px] shrink-0 border-r border-black/[0.08] px-3 py-1.5 text-[12px] font-medium text-[#7D7A75]">Name</div>
+          <div className="flex">
+            {days.map((d) => (
+              <div
+                key={d}
+                style={{ width: dayW }}
+                className={"shrink-0 border-r border-black/[0.06] py-1.5 text-center text-[11px] " + (d === today.getDate() ? "font-semibold text-[#2383E2]" : "text-[#9B9A97]")}
+              >
+                {d}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Rows */}
+        {rows.map((r) => {
+          const span = r.span ?? 3;
+          const style = STATUS_STYLE[r.status];
+          return (
+            <div key={r.id} className="flex border-b border-black/[0.06] last:border-b-0 hover:bg-black/[0.015]">
+              <div className="flex w-[200px] shrink-0 items-center gap-1.5 border-r border-black/[0.08] px-3 py-2">
+                <span className="flex h-[18px] w-[18px] shrink-0 items-center justify-center [&_svg]:h-[18px] [&_svg]:w-[18px]">{r.icon}</span>
+                <span className="min-w-0 truncate text-[14px] text-[#2C2C2B]">{r.title}</span>
+              </div>
+              <div className="relative flex-1 py-2" style={{ minWidth: daysInMonth * dayW }}>
+                <button
+                  onClick={() => toast(`Opened ${r.title}`)}
+                  style={{ left: (r.day - 1) * dayW + 3, width: span * dayW - 6 }}
+                  className={"absolute top-1/2 h-6 -translate-y-1/2 truncate rounded-md px-2 text-left text-[12px] font-medium text-white " + style.bar}
+                  title={r.title}
+                >
+                  {r.title}
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// Chart layout: vertical bar chart of item counts grouped by Status.
+function ChartView({ rows }: { rows: PageRow[] }) {
+  const data = BOARD_STATUSES.map((status) => ({
+    status,
+    count: rows.filter((r) => r.status === status).length,
+  }));
+  const maxCount = Math.max(...data.map((d) => d.count), 1);
+  const ticks = Array.from({ length: maxCount + 1 }, (_, i) => maxCount - i); // top → 0
+  const plotH = 240;
+
+  return (
+    <div className="mt-3 pb-16">
+      <div className="w-full max-w-[760px] rounded-xl border border-black/[0.08] bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+        <div className="mb-1 text-[15px] font-semibold text-[#2C2C2B]">Count by Status</div>
+        <div className="mb-5 text-[13px] text-[#7D7A75]">{rows.length} total</div>
+
+        <div className="flex">
+          {/* Y-axis */}
+          <div className="flex flex-col justify-between pr-2 text-right text-[12px] text-[#9B9A97]" style={{ height: plotH }}>
+            {ticks.map((t) => (
+              <span key={t} className="leading-none">{t}</span>
+            ))}
+          </div>
+
+          {/* Plot area */}
+          <div className="relative flex-1">
+            {/* Gridlines */}
+            <div className="absolute inset-0 flex flex-col justify-between">
+              {ticks.map((t) => (
+                <div key={t} className="h-px w-full bg-black/[0.06]" />
+              ))}
+            </div>
+            {/* Bars */}
+            <div className="relative flex h-full items-end justify-around gap-6" style={{ height: plotH }}>
+              {data.map((d) => {
+                const style = STATUS_STYLE[d.status];
+                return (
+                  <div key={d.status} className="flex h-full flex-1 flex-col items-center justify-end">
+                    {d.count > 0 && (
+                      <span className="mb-1 text-[12px] font-medium text-[#5F5E59]">{d.count}</span>
+                    )}
+                    <div
+                      className={"w-full max-w-[120px] rounded-t-[4px] transition-all " + style.bar}
+                      style={{ height: `${(d.count / maxCount) * (plotH - 24)}px` }}
+                      title={`${d.status}: ${d.count}`}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* X-axis labels */}
+        <div className="mt-2 flex justify-around gap-6 pl-6">
+          {data.map((d) => (
+            <div key={d.status} className="flex flex-1 items-center justify-center gap-1.5 text-[12px] text-[#5F5E59]">
+              <span className={"h-2 w-2 rounded-full " + STATUS_STYLE[d.status].dot} />
+              <span className="truncate">{d.status}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TableLayoutIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className={className}>
+      <rect x="2" y="3" width="12" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M2 6.5h12M6 6.5V13" stroke="currentColor" strokeWidth="1.3" />
+    </svg>
+  );
+}
+
+function ListLayoutIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className={className}>
+      <path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function BoardLayoutIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className={className}>
+      <rect x="2" y="2.5" width="4" height="11" rx="1" stroke="currentColor" strokeWidth="1.3" />
+      <rect x="7.5" y="2.5" width="4" height="8" rx="1" stroke="currentColor" strokeWidth="1.3" />
+      <rect x="13" y="2.5" width="1.5" height="5.5" rx="0.75" stroke="currentColor" strokeWidth="1.3" />
+    </svg>
+  );
+}
+
+function GalleryLayoutIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className={className}>
+      <rect x="2" y="2.5" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.3" />
+      <rect x="9" y="2.5" width="5" height="5" rx="1" stroke="currentColor" strokeWidth="1.3" />
+      <rect x="2" y="9" width="5" height="4.5" rx="1" stroke="currentColor" strokeWidth="1.3" />
+      <rect x="9" y="9" width="5" height="4.5" rx="1" stroke="currentColor" strokeWidth="1.3" />
+    </svg>
+  );
+}
+
+function CalendarLayoutIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className={className}>
+      <rect x="2" y="3" width="12" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M2 6h12M5.5 2v2.5M10.5 2v2.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function TimelineLayoutIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className={className}>
+      <rect x="2" y="3" width="7" height="2.5" rx="1.25" fill="currentColor" />
+      <rect x="6" y="6.75" width="8" height="2.5" rx="1.25" fill="currentColor" />
+      <rect x="3.5" y="10.5" width="6" height="2.5" rx="1.25" fill="currentColor" />
+    </svg>
+  );
+}
+
+function ChartLayoutIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 16 16" fill="none" className={className}>
+      <path d="M2 14h12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+      <rect x="3" y="8" width="2.4" height="4" rx="0.5" fill="currentColor" />
+      <rect x="6.8" y="5" width="2.4" height="7" rx="0.5" fill="currentColor" />
+      <rect x="10.6" y="9.5" width="2.4" height="2.5" rx="0.5" fill="currentColor" />
+    </svg>
+  );
+}
+
 function ToolbarBtn({ children, onClick, active, label }: { children: React.ReactNode; onClick?: () => void; active?: boolean; label?: string; }) {
   return (
     <button
@@ -913,6 +1367,8 @@ function ToolbarBtn({ children, onClick, active, label }: { children: React.Reac
 
 function CollectionSettingsMenu({
   sortLabel,
+  layout,
+  onLayout,
   onSort,
   onGroup,
   onClose,
@@ -920,6 +1376,8 @@ function CollectionSettingsMenu({
   onAddFilter,
 }: {
   sortLabel: string;
+  layout: LayoutKind;
+  onLayout: (next: LayoutKind) => void;
   onSort: () => void;
   onGroup: () => void;
   onClose: () => void;
@@ -1038,9 +1496,76 @@ function CollectionSettingsMenu({
       />
       <MenuSeparator />
       <MenuLabel>Layout</MenuLabel>
-      <MenuItem onClick={() => { toast("Layout: List"); onClose(); }}>List</MenuItem>
-      <MenuItem onClick={() => { toast("Layout: Gallery"); onClose(); }}>Gallery</MenuItem>
+      <LayoutMenuItem
+        icon={<TableLayoutIcon className="h-5 w-5" />}
+        label="Table"
+        active={layout === "table"}
+        onClick={() => onLayout("table")}
+      />
+      <LayoutMenuItem
+        icon={<ListLayoutIcon className="h-5 w-5" />}
+        label="List"
+        active={layout === "list"}
+        onClick={() => onLayout("list")}
+      />
+      <LayoutMenuItem
+        icon={<BoardLayoutIcon className="h-5 w-5" />}
+        label="Board"
+        active={layout === "board"}
+        onClick={() => onLayout("board")}
+      />
+      <LayoutMenuItem
+        icon={<CalendarLayoutIcon className="h-5 w-5" />}
+        label="Calendar"
+        active={layout === "calendar"}
+        onClick={() => onLayout("calendar")}
+      />
+      <LayoutMenuItem
+        icon={<TimelineLayoutIcon className="h-5 w-5" />}
+        label="Timeline"
+        active={layout === "timeline"}
+        onClick={() => onLayout("timeline")}
+      />
+      <LayoutMenuItem
+        icon={<GalleryLayoutIcon className="h-5 w-5" />}
+        label="Gallery"
+        active={layout === "gallery"}
+        onClick={() => onLayout("gallery")}
+      />
+      <LayoutMenuItem
+        icon={<ChartLayoutIcon className="h-5 w-5" />}
+        label="Chart"
+        active={layout === "chart"}
+        onClick={() => onLayout("chart")}
+      />
     </div>
+  );
+}
+
+function LayoutMenuItem({
+  icon,
+  label,
+  active,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex h-9 w-full items-center gap-2.5 rounded-md px-2 text-left text-[14px] text-[#37352F] transition-colors hover:bg-black/[0.05]"
+    >
+      <span className="flex h-5 w-5 shrink-0 items-center justify-center text-[#5F5E59]">{icon}</span>
+      <span className="min-w-0 flex-1 truncate">{label}</span>
+      {active && (
+        <svg className="h-4 w-4 shrink-0 text-[#2C2C2B]" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M11.834 3.309a.625.625 0 0 1 1.072.642l-5.244 8.74a.625.625 0 0 1-1.01.085L3.155 8.699a.626.626 0 0 1 .95-.813l2.93 3.419z" />
+        </svg>
+      )}
+    </button>
   );
 }
 

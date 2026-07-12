@@ -14,7 +14,6 @@ import {
   X,
   FileText,
   Palmtree,
-  Trash2,
 } from "lucide-react";
 
 type Suggestion = { icon: React.ReactNode; label: string; badge?: string };
