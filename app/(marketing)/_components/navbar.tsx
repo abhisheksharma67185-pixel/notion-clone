@@ -34,12 +34,12 @@ export const Navbar = () => {
                     </>
                 ) : (
                     <>
-                    <SignInButton mode="modal">
+                    <SignInButton mode="modal" forceRedirectUrl="/notion-library">
                         <Button variant="ghost">
                             Sign In
                         </Button>
                     </SignInButton>
-                    <SignInButton mode="modal">
+                    <SignInButton mode="modal" forceRedirectUrl="/notion-library">
                         <Button className="hover:bg-gray-100 hover:text-black">
                             Get Paperly Free
                         </Button>

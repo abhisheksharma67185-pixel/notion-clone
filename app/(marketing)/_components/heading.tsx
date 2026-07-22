@@ -49,7 +49,7 @@ export const Heading = () => {
                    </Link>
                 </Button>
             ) : (
-                <SignInButton>
+                <SignInButton mode="modal" forceRedirectUrl="/notion-library">
                     <Button className="h-4, w-4, ml-2 hover:bg-slate-100 hover:text-black">
                         Get Paperly Free <ArrowRight/>
                     </Button>
