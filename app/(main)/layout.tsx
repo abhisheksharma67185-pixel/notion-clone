@@ -4,7 +4,7 @@ import { Spinner } from "@/components/spinner";
 import { Navigation } from "./_components/navigation";
 import { redirect } from "next/navigation";
 import { SearchCommand } from "@/components/search-command";
-import { useConvexAuth } from "convex/react";
+import { useConvexAuth } from "@/components/providers/convex-provider";
 
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {

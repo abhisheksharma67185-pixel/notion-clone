@@ -2,7 +2,7 @@
 
 import { Spinner } from "@/components/spinner";
 import { redirect } from "next/navigation";
-import { useConvexAuth } from "convex/react";
+import { useConvexAuth } from "@/components/providers/convex-provider";
 
 // Gate the notion-library app behind auth, mirroring app/(main)/layout.tsx.
 // Signed-out visitors (including anyone who pastes the URL directly) are sent

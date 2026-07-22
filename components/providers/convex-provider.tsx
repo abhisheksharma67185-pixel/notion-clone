@@ -11,6 +11,49 @@ const clerkKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || "pk_test_bWFnb
 
 const convex = new ConvexReactClient(convexUrl);
 
+import { useConvexAuth as useOriginalConvexAuth } from "convex/react";
+import { createContext, useContext, useEffect, useState } from "react";
+
+interface AuthState {
+    isAuthenticated: boolean;
+    isLoading: boolean;
+}
+
+const ConvexAuthContext = createContext<AuthState>({ isAuthenticated: false, isLoading: true });
+
+function ConvexAuthWrapper({ children }: { children: ReactNode }) {
+    const originalAuth = useOriginalConvexAuth();
+    const clerkAuth = useAuth();
+    const [timedOut, setTimedOut] = useState(false);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setTimedOut(true);
+        }, 2000);
+
+        return () => clearTimeout(timer);
+    }, []);
+
+    const isLoading = originalAuth.isLoading && !timedOut;
+    const isAuthenticated = originalAuth.isLoading
+        ? (timedOut ? Boolean(clerkAuth.isLoaded && clerkAuth.isSignedIn) : false)
+        : originalAuth.isAuthenticated;
+
+    return (
+        <ConvexAuthContext.Provider value={{ isAuthenticated, isLoading }}>
+            {children}
+        </ConvexAuthContext.Provider>
+    );
+}
+
+export function useConvexAuth() {
+    const context = useContext(ConvexAuthContext);
+    if (!context) {
+        return { isAuthenticated: false, isLoading: true };
+    }
+    return context;
+}
+
 export const ConvexClientProvider = ({ children }: { children: ReactNode }) => {
     return (
         <ClerkProvider publishableKey={clerkKey}>
@@ -18,7 +61,9 @@ export const ConvexClientProvider = ({ children }: { children: ReactNode }) => {
                 useAuth={useAuth}
                 client={convex}
             >
-                {children}
+                <ConvexAuthWrapper>
+                    {children}
+                </ConvexAuthWrapper>
             </ConvexProviderWithClerk>
         </ClerkProvider>
     );

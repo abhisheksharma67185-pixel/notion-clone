@@ -7,7 +7,7 @@ import { SignInButton, UserButton } from "@clerk/clerk-react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/spinner";
 import Link  from "next/link";
-import { useConvexAuth } from "convex/react";
+import { useConvexAuth } from "@/components/providers/convex-provider";
 
 import { useEffect, useState } from "react";
 
