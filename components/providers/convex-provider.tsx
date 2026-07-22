@@ -46,6 +46,18 @@ function ConvexAuthWrapper({ children }: { children: ReactNode }) {
     );
 }
 
+function FallbackConvexAuthProvider({ children }: { children: ReactNode }) {
+    const clerkAuth = useAuth();
+    const isLoading = !clerkAuth.isLoaded;
+    const isAuthenticated = Boolean(clerkAuth.isLoaded && clerkAuth.isSignedIn);
+
+    return (
+        <ConvexAuthContext.Provider value={{ isAuthenticated, isLoading }}>
+            {children}
+        </ConvexAuthContext.Provider>
+    );
+}
+
 export function useConvexAuth() {
     const context = useContext(ConvexAuthContext);
     if (!context) {
@@ -77,9 +89,9 @@ export const ConvexClientProvider = ({ children }: { children: ReactNode }) => {
     if (!convexClient || isLocalHostOnHttps) {
         return (
             <ClerkProvider publishableKey={clerkKey}>
-                <ConvexAuthContext.Provider value={{ isAuthenticated: false, isLoading: false }}>
+                <FallbackConvexAuthProvider>
                     {children}
-                </ConvexAuthContext.Provider>
+                </FallbackConvexAuthProvider>
             </ClerkProvider>
         );
     }
