@@ -3,7 +3,7 @@
 import { useScrollTop } from "@/hooks/use-scroll-top";
 import { cn } from "@/lib/utils";
 import { Logo } from "./logo";
-import { SignInButton, UserButton } from "@clerk/clerk-react";
+import { SignInButton, UserButton } from "@clerk/react";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/spinner";
 import Link  from "next/link";
@@ -58,9 +58,7 @@ export const Navbar = () => {
                             My Pages
                         </Link>
                     </Button>
-                    <UserButton
-                        afterSignOutUrl="/"
-                    />
+                    <UserButton />
                     </>
                 )}  
             </div>

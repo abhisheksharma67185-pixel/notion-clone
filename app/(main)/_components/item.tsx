@@ -19,7 +19,7 @@ import { DropdownMenu,
          DropdownMenuItem, 
          DropdownMenuSeparator, 
          DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { useUser } from "@clerk/clerk-react";
+import { useUser } from "@clerk/react";
 
 interface ItemProps {
     id?: Id<"documents">;

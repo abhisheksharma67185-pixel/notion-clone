@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Spinner } from "@/components/spinner";
 import Link from "next/link";
-import { SignInButton } from "@clerk/clerk-react";
+import { SignInButton } from "@clerk/react";
 import { useConvexAuth } from "@/components/providers/convex-provider";
 
 import { useEffect, useState } from "react";
