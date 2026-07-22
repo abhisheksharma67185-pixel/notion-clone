@@ -3,11 +3,9 @@
 import { useScrollTop } from "@/hooks/use-scroll-top";
 import { cn } from "@/lib/utils";
 import { Logo } from "./logo";
-import { SignInButton, UserButton } from "@clerk/react";
+import { SignInButton, UserButton, useAuth } from "@clerk/react";
 import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/spinner";
 import Link  from "next/link";
-import { useConvexAuth } from "@/components/providers/convex-provider";
 
 import { useEffect, useState } from "react";
 
@@ -17,7 +15,7 @@ export const Navbar = () => {
         setMounted(true);
     }, []);
 
-    const { isAuthenticated, isLoading } = useConvexAuth();
+    const { isLoaded, isSignedIn } = useAuth();
     const scrollTop = useScrollTop();
 
     if (!mounted) {
@@ -33,11 +31,16 @@ export const Navbar = () => {
             "z-50 fixed bg-background top-0 flex items-center w-full p-6", scrollTop && "border-b shadow-sm")}>
             <Logo/>
             <div className="md:ml-auto md:justify-end justify-between w-full flex items-center gap-x-2">
-                {isLoading &&  (
-                    <Spinner/>
-                )}
-
-                {!isAuthenticated && !isLoading && (
+                {isSignedIn ? (
+                    <>
+                    <Button className="hover:bg-gray-100 hover:text-black">
+                        <Link href="/notion-library">
+                            My Pages
+                        </Link>
+                    </Button>
+                    <UserButton />
+                    </>
+                ) : (
                     <>
                     <SignInButton mode="modal">
                         <Button variant="ghost">
@@ -51,17 +54,8 @@ export const Navbar = () => {
                     </SignInButton>
                     </>
                 )}
-                {isAuthenticated && !isLoading && (
-                    <>
-                    <Button className="hover:bg-gray-100 hover:text-black">
-                        <Link href="/notion-library">
-                            My Pages
-                        </Link>
-                    </Button>
-                    <UserButton />
-                    </>
-                )}  
             </div>
         </div>
     )
 }
+

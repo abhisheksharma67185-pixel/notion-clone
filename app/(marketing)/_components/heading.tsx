@@ -2,10 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
-import { Spinner } from "@/components/spinner";
 import Link from "next/link";
-import { SignInButton } from "@clerk/react";
-import { useConvexAuth } from "@/components/providers/convex-provider";
+import { SignInButton, useAuth } from "@clerk/react";
 
 import { useEffect, useState } from "react";
 
@@ -15,9 +13,9 @@ export const Heading = () => {
         setMounted(true);
     }, []);
 
-    const { isAuthenticated, isLoading } = useConvexAuth();
+    const { isLoaded, isSignedIn } = useAuth();
 
-    if (!mounted) {
+    if (!mounted || !isLoaded) {
         return (
             <div className="max-w-3xl space-y-4">
                 <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold">
@@ -26,9 +24,11 @@ export const Heading = () => {
                 <h3 className="text-base sm:text-xl md: text-2xl font-medium pop p-4">
                     Paperly is a connected workplace where <br/> better, faster work happens.
                 </h3>
-                <div className="w-full flex justify-center items-center">
-                    <Spinner size="md"/>
-                </div>
+                <SignInButton>
+                    <Button className="h-4, w-4, ml-2 hover:bg-slate-100 hover:text-black">
+                        Get Paperly Free <ArrowRight/>
+                    </Button>
+                </SignInButton>
             </div>
         );
     }
@@ -42,21 +42,13 @@ export const Heading = () => {
                 Paperly is a connected workplace where <br/> better, faster work happens.
             </h3>
 
-            {isLoading && (
-                    <div className="w-full flex justify-center items-center">
-                        <Spinner size="md"/>
-                    </div>
-            )}
-
-            {isAuthenticated && !isLoading && (
+            {isSignedIn ? (
                 <Button className="h-4, w-4, ml-2 hover:bg-slate-100 hover:text-black" asChild>
                     <Link href="/notion-library">
                         Enter Paperly <ArrowRight/>
                    </Link>
                 </Button>
-            )}
-
-            {!isAuthenticated && !isLoading && (
+            ) : (
                 <SignInButton>
                     <Button className="h-4, w-4, ml-2 hover:bg-slate-100 hover:text-black">
                         Get Paperly Free <ArrowRight/>
@@ -68,3 +60,4 @@ export const Heading = () => {
     )
 
 }
+
