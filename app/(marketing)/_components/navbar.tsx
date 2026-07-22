@@ -9,9 +9,24 @@ import { Spinner } from "@/components/spinner";
 import Link  from "next/link";
 import { useConvexAuth } from "convex/react";
 
+import { useEffect, useState } from "react";
+
 export const Navbar = () => {
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     const { isAuthenticated, isLoading } = useConvexAuth();
     const scrollTop = useScrollTop();
+
+    if (!mounted) {
+        return (
+            <div className={cn("z-50 fixed bg-background top-0 flex items-center w-full p-6", scrollTop && "border-b shadow-sm")}>
+                <Logo/>
+            </div>
+        );
+    }
 
     return (
         <div className={cn(

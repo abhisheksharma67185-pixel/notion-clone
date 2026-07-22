@@ -1,5 +1,7 @@
 import { ClientDocumentPage } from "./ClientDocumentPage";
 
+export const dynamic = "force-dynamic";
+
 interface Params {
   documentId: string;
 }

@@ -7,9 +7,31 @@ import Link from "next/link";
 import { SignInButton } from "@clerk/clerk-react";
 import { useConvexAuth } from "convex/react";
 
+import { useEffect, useState } from "react";
+
 export const Heading = () => {
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const { isAuthenticated, isLoading } = useConvexAuth();
+
+    if (!mounted) {
+        return (
+            <div className="max-w-3xl space-y-4">
+                <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold">
+                    Your Ideas, Documents, & Plans. Unified. Welcome to <span className="underline">Paperly</span>
+                </h1>
+                <h3 className="text-base sm:text-xl md: text-2xl font-medium pop p-4">
+                    Paperly is a connected workplace where <br/> better, faster work happens.
+                </h3>
+                <div className="w-full flex justify-center items-center">
+                    <Spinner size="md"/>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-3xl space-y-4">

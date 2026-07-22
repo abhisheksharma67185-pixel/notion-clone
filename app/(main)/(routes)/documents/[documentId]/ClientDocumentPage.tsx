@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import dynamic from "next/dynamic";
 import { useMutation, useQuery } from "convex/react";
 
@@ -17,29 +17,26 @@ interface ClientDocumentPageProps {
   documentId: string;
 }
 
+const Editor = dynamic(
+  () => import("@/components/editor").then((m) => m.Editor),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="pl-6 md:pl-[54px] pr-4 space-y-3">
+        <Skeleton className="h-4 w-[60%]" />
+        <Skeleton className="h-4 w-[80%]" />
+        <Skeleton className="h-4 w-[40%]" />
+      </div>
+    ),
+  }
+);
+
 export function ClientDocumentPage({ documentId }: ClientDocumentPageProps) {
   const documentIdTyped = documentId as Id<"documents">;
   const document = useQuery(api.documents.getById, {
     documentId: documentIdTyped,
   });
   const update = useMutation(api.documents.update);
-
-  // Editor is browser-only (BlockNote); never server-render it. Memoized so the
-  // dynamic component identity is stable across re-renders.
-  const Editor = useMemo(
-    () =>
-      dynamic(() => import("@/components/editor").then((m) => m.Editor), {
-        ssr: false,
-        loading: () => (
-          <div className="pl-6 md:pl-[54px] pr-4 space-y-3">
-            <Skeleton className="h-4 w-[60%]" />
-            <Skeleton className="h-4 w-[80%]" />
-            <Skeleton className="h-4 w-[40%]" />
-          </div>
-        ),
-      }),
-    []
-  );
 
   // The save closure captures this page's documentId, so a flush during a page
   // switch always writes to the correct document — content can't leak across pages.

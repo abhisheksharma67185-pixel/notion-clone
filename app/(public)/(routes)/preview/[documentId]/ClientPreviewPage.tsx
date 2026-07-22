@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useQuery } from "convex/react";
 
@@ -15,18 +14,17 @@ interface ClientPreviewPageProps {
     documentId: string;
 }
 
+const Editor = dynamic(
+    () => import("@/components/editor").then((m) => m.Editor),
+    {
+        ssr: false,
+    }
+);
+
 export function ClientPreviewPage({ documentId }: ClientPreviewPageProps) {
     const document = useQuery(api.documents.getById, {
         documentId: documentId as Id<"documents">,
     });
-
-    const Editor = useMemo(
-        () =>
-            dynamic(() => import("@/components/editor").then((m) => m.Editor), {
-                ssr: false,
-            }),
-        []
-    );
 
     if (document === undefined) {
         return (

@@ -1,5 +1,7 @@
 import { ClientPreviewPage } from "./ClientPreviewPage";
 
+export const dynamic = "force-dynamic";
+
 interface DocumentIdProps {
   params: Promise<{
     documentId: string;
