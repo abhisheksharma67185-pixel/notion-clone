@@ -2,13 +2,12 @@
 
 import { Spinner } from "@/components/spinner";
 import { redirect } from "next/navigation";
+import { useAuth } from "@clerk/react";
 import { useConvexAuth } from "@/components/providers/convex-provider";
 
-// Gate the notion-library app behind auth, mirroring app/(main)/layout.tsx.
-// Signed-out visitors (including anyone who pastes the URL directly) are sent
-// back to the marketing page to sign in.
 const NotionLibraryLayout = ({ children }: { children: React.ReactNode }) => {
     const { isAuthenticated, isLoading } = useConvexAuth();
+    const clerkAuth = useAuth();
 
     if (isLoading) {
         return (
@@ -18,7 +17,7 @@ const NotionLibraryLayout = ({ children }: { children: React.ReactNode }) => {
         );
     }
 
-    if (!isAuthenticated) {
+    if (!isAuthenticated && clerkAuth.isLoaded && !clerkAuth.isSignedIn) {
         return redirect("/");
     }
 
