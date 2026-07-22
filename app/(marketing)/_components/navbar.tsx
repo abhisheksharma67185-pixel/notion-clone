@@ -18,22 +18,14 @@ export const Navbar = () => {
     const { isLoaded, isSignedIn } = useAuth();
     const scrollTop = useScrollTop();
 
-    if (!mounted) {
-        return (
-            <div className={cn("z-50 fixed bg-background top-0 flex items-center w-full p-6", scrollTop && "border-b shadow-sm")}>
-                <Logo/>
-            </div>
-        );
-    }
-
     return (
         <div className={cn(
             "z-50 fixed bg-background top-0 flex items-center w-full p-6", scrollTop && "border-b shadow-sm")}>
             <Logo/>
             <div className="md:ml-auto md:justify-end justify-between w-full flex items-center gap-x-2">
-                {isSignedIn ? (
+                {mounted && isLoaded && isSignedIn ? (
                     <>
-                    <Button className="hover:bg-gray-100 hover:text-black">
+                    <Button className="hover:bg-gray-100 hover:text-black" asChild>
                         <Link href="/notion-library">
                             My Pages
                         </Link>
@@ -56,6 +48,7 @@ export const Navbar = () => {
                 )}
             </div>
         </div>
-    )
-}
+    );
+};
+
 
